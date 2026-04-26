@@ -22,6 +22,14 @@ export function rateLimit(identifier: string, limit: number, windowMs: number) {
   return { success: true, remaining: limit - entry.count };
 }
 
+// Cleanup expired entries every hour
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of cache.entries()) {
+    if (entry.resetTime < now) cache.delete(key);
+  }
+}, 60 * 60 * 1000);
+
 // Helper to get client IP
 export function getIP(req: Request) {
   const forwarded = req.headers.get("x-forwarded-for");

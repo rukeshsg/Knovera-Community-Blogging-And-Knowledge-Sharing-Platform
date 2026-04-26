@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 import NotificationBell from "@/components/NotificationBell";
 import { Search, Moon, Sun, LogOut, User, MessageSquare, Bookmark, ChevronDown, Settings, X } from 'lucide-react';
 
@@ -66,13 +67,13 @@ export default function Navbar() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center">
-              <div className="relative h-10 w-36 flex items-center">
+              <div className="relative h-10 w-40 flex items-center">
                 <Image
                   src="/assets/knovera-logo.png"
                   alt="Knovera Logo"
                   fill
                   priority
-                  sizes="144px"
+                  sizes="176px"
                   className="dark:hidden object-contain object-left"
                 />
                 <Image
@@ -80,7 +81,7 @@ export default function Navbar() {
                   alt="Knovera Logo"
                   fill
                   priority
-                  sizes="144px"
+                  sizes="176px"
                   className="hidden dark:block object-contain object-left"
                 />
               </div>
@@ -94,23 +95,24 @@ export default function Navbar() {
 
           <div className="flex items-center gap-4 text-[var(--color-text-secondary)]">
             {showSearch ? (
-              <div className="absolute inset-0 bg-[var(--background)] flex items-center px-4 sm:px-6 lg:px-8 z-50">
+              <div className="absolute inset-0 bg-[var(--background)] flex items-center px-4 sm:px-6 lg:px-8 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="max-w-7xl mx-auto w-full flex items-center gap-4">
                   <Search className="w-5 h-5 text-[var(--color-primary)]" />
                   <input
                     autoFocus
                     type="text"
-                    placeholder="Search stories, topics, or authors..."
-                    className="flex-1 bg-transparent border-none outline-none text-[var(--color-text-primary)] font-medium text-lg"
+                    placeholder="Search Knovera..."
+                    className="flex-1 bg-transparent border-none outline-none text-[var(--color-text-primary)] font-medium text-xl placeholder:text-[var(--color-text-secondary)]/50"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && searchQuery.trim()) {
-                        window.location.href = `/explore?search=${encodeURIComponent(searchQuery.trim())}`;
+                        window.location.href = `/explore?q=${encodeURIComponent(searchQuery.trim())}`;
                       }
+                      if (e.key === "Escape") setShowSearch(false);
                     }}
                   />
-                  <button onClick={() => setShowSearch(false)} className="p-2 hover:bg-[var(--color-bg-soft)] rounded-full transition-colors">
+                  <button onClick={() => setShowSearch(false)} className="p-2 hover:bg-[var(--color-bg-soft)] rounded-full transition-colors text-[var(--color-text-secondary)]">
                     <X className="w-6 h-6" />
                   </button>
                 </div>
@@ -118,7 +120,7 @@ export default function Navbar() {
             ) : (
               <button 
                 onClick={() => setShowSearch(true)}
-                className="p-2 hover:text-[var(--color-text-primary)] transition-colors" 
+                className="p-2 hover:text-[var(--color-text-primary)] transition-all hover:scale-110" 
                 aria-label="Search"
               >
                 <Search className="h-5 w-5" />

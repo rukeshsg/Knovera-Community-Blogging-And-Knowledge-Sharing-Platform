@@ -4,10 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Loader2, Camera, Globe, Twitter, Save, ArrowLeft } from "lucide-react";
-import { Github } from "lucide-react"; // I'll try to see if this works, otherwise I'll fallback to Globe in the next step if build still fails. 
-// Wait, I'll just use a fallback if I'm not sure. I'll use "Code" instead for now to be safe.
-import { Code } from "lucide-react";
+import { Loader2, Camera, Globe, AtSign, Save, ArrowLeft, Code } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -202,7 +199,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="relative">
-                <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-secondary)]" />
+                <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-secondary)]" />
                 <input 
                   type="text" 
                   value={formData.twitter}

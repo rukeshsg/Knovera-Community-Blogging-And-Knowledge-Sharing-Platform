@@ -28,12 +28,18 @@ export async function POST(req: Request) {
     await connectToDatabase();
 
     // Generate unique slug
-    let baseSlug = slugify(title, { lower: true, strict: true });
+    // Generate unique slug
+    const baseSlug = slugify(title, { lower: true, strict: true });
     let slug = baseSlug;
-    let counter = 1;
-    while (await Post.findOne({ slug })) {
-      slug = `${baseSlug}-${counter}`;
-      counter++;
+    
+    const existingSlugs = await Post.find({ slug: new RegExp(`^${baseSlug}`) }).select("slug").lean();
+    if (existingSlugs.length > 0) {
+      const slugSet = new Set(existingSlugs.map((p: any) => p.slug));
+      let counter = 1;
+      while (slugSet.has(slug)) {
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
     }
 
     const post = await Post.create({
