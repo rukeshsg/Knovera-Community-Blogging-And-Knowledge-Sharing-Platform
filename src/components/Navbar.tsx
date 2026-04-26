@@ -41,9 +41,37 @@ export default function Navbar() {
   const { data: session } = useSession();
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu on outside click
+  // Initialize theme from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const dark = saved === "dark" || (!saved && prefersDark);
+    setIsDarkMode(dark);
+    document.documentElement.classList.toggle("dark", dark);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("theme", next ? "dark" : "light");
+  };
+
+  // Close search on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowSearch(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // Close user menu on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -67,13 +95,13 @@ export default function Navbar() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center">
-              <div className="relative h-10 w-40 flex items-center">
+              <div className="relative h-12 w-48 flex items-center">
                 <Image
                   src="/assets/knovera-logo.png"
                   alt="Knovera Logo"
                   fill
                   priority
-                  sizes="176px"
+                  sizes="192px"
                   className="dark:hidden object-contain object-left"
                 />
                 <Image
@@ -81,7 +109,7 @@ export default function Navbar() {
                   alt="Knovera Logo"
                   fill
                   priority
-                  sizes="176px"
+                  sizes="192px"
                   className="hidden dark:block object-contain object-left"
                 />
               </div>

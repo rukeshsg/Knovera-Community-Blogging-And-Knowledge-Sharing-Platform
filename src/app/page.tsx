@@ -13,15 +13,9 @@ async function getRecentPosts() {
     .limit(6)
     .populate("author", "name image")
     .lean();
-  
-  // Serialize for client component
-  return posts.map((p: any) => ({
-    ...p,
-    _id: p._id.toString(),
-    author: { ...p.author, _id: p.author._id.toString() },
-    likes: p.likes.map((id: any) => id.toString()),
-    createdAt: p.createdAt.toISOString(),
-  }));
+
+  // JSON round-trip strips ALL Mongoose ObjectId/Buffer/Date types in one pass
+  return JSON.parse(JSON.stringify(posts));
 }
 
 export default async function Home() {

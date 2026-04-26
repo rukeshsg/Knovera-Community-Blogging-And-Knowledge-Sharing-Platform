@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Loader2, Camera, Globe, AtSign, Save, ArrowLeft, Code } from "lucide-react";
 import Link from "next/link";
+import ImageCropper from "@/components/ImageCropper";
 
 export default function SettingsPage() {
   const { data: session, status, update } = useSession();
@@ -14,6 +15,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -55,16 +57,22 @@ export default function SettingsPage() {
     }
   }, [session, status, router]);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Reset file input so same file can be re-selected
+    e.target.value = "";
+    const objectUrl = URL.createObjectURL(file);
+    setCropSrc(objectUrl);
+  };
 
+  const handleCropDone = async (blob: Blob) => {
+    setCropSrc(null);
     setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
+    const fd = new FormData();
+    fd.append("file", blob, "avatar.jpg");
     try {
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json();
       if (data.url) setFormData(prev => ({ ...prev, image: data.url }));
     } catch (error) {
@@ -111,6 +119,14 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      {/* Image Cropper Modal */}
+      {cropSrc && (
+        <ImageCropper
+          imageSrc={cropSrc}
+          onCrop={handleCropDone}
+          onCancel={() => { setCropSrc(null); URL.revokeObjectURL(cropSrc); }}
+        />
+      )}    
       <div className="mb-10 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href={`/profile/${session?.user?.id}`} className="p-2 hover:bg-[var(--color-bg-soft)] rounded-xl transition-colors">
@@ -143,7 +159,7 @@ export default function SettingsPage() {
               <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 rounded-[32px] cursor-pointer transition-opacity backdrop-blur-sm">
                 <Camera className="w-8 h-8 mb-1" />
                 <span className="text-xs font-bold uppercase tracking-widest">Change</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={uploading} />
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} disabled={uploading} />
               </label>
               {uploading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-[32px] backdrop-blur-sm">

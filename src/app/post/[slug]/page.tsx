@@ -92,19 +92,25 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
 
       {/* Author + Meta */}
       <div className="flex items-center gap-4 mb-8 pb-8 border-b border-[var(--color-bg-secondary)]">
-        <Link href={`/profile/${post.author._id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          {post.author.image ? (
-            <img src={post.author.image} alt={post.author.name} className="w-11 h-11 rounded-full object-cover ring-2 ring-[var(--color-primary)]/20" />
-          ) : (
-            <div className="w-11 h-11 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center text-[var(--color-primary)] font-bold">
-              {post.author.name.charAt(0)}
-            </div>
-          )}
+        <div className="flex items-center gap-3 flex-1">
+          {/* Avatar - links to profile */}
+          <Link href={`/profile/${post.author._id}`} className="hover:opacity-80 transition-opacity flex-shrink-0">
+            {post.author.image ? (
+              <img src={post.author.image} alt={post.author.name} className="w-11 h-11 rounded-full object-cover ring-2 ring-[var(--color-primary)]/20" />
+            ) : (
+              <div className="w-11 h-11 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center text-[var(--color-primary)] font-bold">
+                {post.author.name.charAt(0)}
+              </div>
+            )}
+          </Link>
+          {/* Author info */}
           <div>
             <div className="flex items-center gap-2">
-              <p className="font-semibold text-[var(--color-text-primary)] text-sm">{post.author.name}</p>
+              <Link href={`/profile/${post.author._id}`} className="font-semibold text-[var(--color-text-primary)] text-sm hover:text-[var(--color-primary)] transition-colors">
+                {post.author.name}
+              </Link>
               {session?.user?.id === post.author._id.toString() && (
-                <Link 
+                <Link
                   href={`/write?edit=${post.slug}`}
                   className="text-[10px] uppercase font-bold px-2 py-0.5 bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] rounded-md hover:bg-[var(--color-primary)] hover:text-white transition-colors"
                 >
@@ -120,8 +126,8 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
               <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{post.views}</span>
             </div>
           </div>
-        </Link>
-        <div className="ml-auto flex items-center gap-2">
+        </div>
+        <div className="flex items-center gap-2">
           <LikeButton
             postId={post._id.toString()}
             initialLiked={isLiked}

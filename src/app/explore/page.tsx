@@ -38,7 +38,7 @@ async function searchPosts(query: string, tag: string, page: number = 1) {
   ]);
 
   return { 
-    posts, 
+    posts: JSON.parse(JSON.stringify(posts)), 
     total, 
     totalPages: Math.ceil(total / limit),
     currentPage: page
@@ -59,10 +59,9 @@ async function getAllTags() {
   return Array.from(tagSet).slice(0, 25);
 }
 
-export default async function ExplorePage({ searchParams }: { searchParams: SearchParams }) {
-  const q = searchParams.q ?? "";
-  const tag = searchParams.tag ?? "";
-  const page = parseInt(searchParams.page ?? "1");
+export default async function ExplorePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const { q = "", tag = "", page: pageStr = "1" } = await searchParams;
+  const page = parseInt(pageStr);
 
   const [{ posts, totalPages, currentPage, total }, allTags] = await Promise.all([
     searchPosts(q, tag, page), 
@@ -86,7 +85,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Sear
               className="w-full pl-12 pr-4 py-4 border border-[var(--color-bg-secondary)] bg-[var(--background)] rounded-2xl text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all shadow-sm text-lg"
             />
             {tag && <input type="hidden" name="tag" value={tag} />}
-          </form> form
+          </form>
         </div>
       </div>
 

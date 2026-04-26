@@ -72,11 +72,12 @@ export async function GET(req: Request) {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("author", "name image");
+      .populate("author", "name image")
+      .lean();
 
     const total = await Post.countDocuments({ isPublished: true });
 
-    return NextResponse.json({ posts, total, page, totalPages: Math.ceil(total / limit) });
+    return NextResponse.json({ posts: JSON.parse(JSON.stringify(posts)), total, page, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     console.error("Fetch posts error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
