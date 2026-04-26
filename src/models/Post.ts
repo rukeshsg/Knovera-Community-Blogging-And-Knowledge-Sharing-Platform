@@ -11,6 +11,8 @@ export interface IPost extends Document {
   readTime: number;
   views: number;
   likes: Types.ObjectId[];
+  bookmarks: Types.ObjectId[];
+  shares: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,18 +29,19 @@ const PostSchema: Schema = new Schema(
     readTime: { type: Number, default: 0 },
     views: { type: Number, default: 0 },
     likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    bookmarks: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    shares: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
 
 // Pre-save hook to calculate read time (approx 200 words per minute)
-PostSchema.pre("save", function (next) {
-  if (this.isModified("content")) {
-    // Strip HTML tags to count actual words
-    const textLength = this.content.replace(/<[^>]*>?/gm, "").split(/\s+/).length;
-    this.readTime = Math.max(1, Math.ceil(textLength / 200));
+PostSchema.pre("save", async function () {
+  const doc = this as unknown as IPost;
+  if (doc.isModified("content")) {
+    const textLength = doc.content.replace(/<[^>]*>?/gm, "").split(/\s+/).length;
+    doc.readTime = Math.max(1, Math.ceil(textLength / 200));
   }
-  next();
 });
 
 export default mongoose.models.Post || mongoose.model<IPost>("Post", PostSchema);

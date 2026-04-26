@@ -1,27 +1,29 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IUser extends Document {
   name: string;
   email: string;
-  password?: string; // Optional for OAuth
+  password?: string;
   image?: string;
   role: "USER" | "CREATOR" | "MODERATOR" | "ADMIN";
   authProvider: "CREDENTIALS" | "GOOGLE";
-  providerAccountId?: string; // For linking OAuth accounts
+  providerAccountId?: string;
   isEmailVerified: boolean;
   verificationToken?: string;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  resetOtp?: string;
+  resetOtpExpiry?: Date;
+  resetOtpAttempts?: number;
+  followers: Types.ObjectId[];
+  following: Types.ObjectId[];
+  bookmarks: Types.ObjectId[];
   profile?: {
     bio?: string;
     socialLinks?: {
       twitter?: string;
       github?: string;
       website?: string;
-    };
-    stats?: {
-      postsCount?: number;
-      followersCount?: number;
     };
   };
 }
@@ -47,16 +49,18 @@ const UserSchema: Schema = new Schema(
     verificationToken: { type: String },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
+    resetOtp: { type: String },
+    resetOtpExpiry: { type: Date },
+    resetOtpAttempts: { type: Number, default: 0 },
+    followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    following: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    bookmarks: [{ type: Schema.Types.ObjectId, ref: "Post" }],
     profile: {
       bio: { type: String },
       socialLinks: {
         twitter: { type: String },
         github: { type: String },
         website: { type: String },
-      },
-      stats: {
-        postsCount: { type: Number, default: 0 },
-        followersCount: { type: Number, default: 0 },
       },
     },
   },

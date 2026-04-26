@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import connectToDatabase from "@/lib/mongodb";
 import Post from "@/models/Post";
 import slugify from "slugify";
+import { sanitizeHtml } from "@/lib/sanitize";
+import { rateLimit, getIP, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +14,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const userId = (session.user as any).id;
+    const { success } = rateLimit(`post-create-${userId}`, 10, 60 * 60 * 1000);
+    if (!success) return rateLimitResponse();
+
     const { title, content, coverImage, tags, isPublished } = await req.json();
+    const cleanContent = sanitizeHtml(content);
 
     if (!title || !content) {
       return NextResponse.json({ error: "Title and content are required" }, { status: 400 });
@@ -32,7 +39,7 @@ export async function POST(req: Request) {
     const post = await Post.create({
       title,
       slug,
-      content,
+      content: cleanContent,
       coverImage,
       tags: tags || [],
       isPublished: isPublished !== undefined ? isPublished : false,

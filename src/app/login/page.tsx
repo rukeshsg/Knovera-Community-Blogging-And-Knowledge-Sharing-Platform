@@ -32,10 +32,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-64px)]">
-      {/* Left side: Premium Branding */}
+    <div className="flex min-h-screen -mt-16">
+      {/* Left side: Premium Branding — full viewport height */}
       <div 
-        className="hidden lg:flex lg:w-1/2 text-white flex-col justify-between p-16 relative overflow-hidden bg-black"
+        className="hidden lg:flex lg:w-1/2 text-white flex-col justify-between p-12 relative overflow-hidden bg-black"
         style={{ backgroundImage: "url('/assets/auth-bg.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}
       >
         <div className="absolute inset-0 bg-black/50 z-0"></div>

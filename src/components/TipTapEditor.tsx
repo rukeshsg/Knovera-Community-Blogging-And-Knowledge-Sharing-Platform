@@ -87,6 +87,7 @@ export default function TipTapEditor({ content, onChange }: { content: string, o
       Placeholder.configure({ placeholder: 'Start writing your story...' })
     ],
     content,
+    immediatelyRender: false,
     editorProps: {
       attributes: {
         class: 'prose prose-lg dark:prose-invert prose-headings:font-heading prose-a:text-[var(--color-primary)] prose-img:rounded-xl max-w-none focus:outline-none min-h-[500px] p-6',
