@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #FFFFFF;
+  --foreground: #111111;
+  --color-primary: #92400E;
+  --color-primary-soft: #C2410C;
+  --color-bg-soft: #F5F5F4;
+  --color-bg-secondary: #E7E5E4;
+  --color-text-primary: #111111;
+  --color-text-secondary: #6B7280;
+}
+
+.dark {
+  --background: #111111;
+  --foreground: #FFFFFF;
+  --color-primary: #92400E;
+  --color-primary-soft: #C2410C;
+  --color-bg-soft: #1F1F1F;
+  --color-bg-secondary: #262626;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #A3A3A3;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-soft: var(--color-primary-soft);
+  --color-bg-soft: var(--color-bg-soft);
+  --color-bg-secondary: var(--color-bg-secondary);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-playfair);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
