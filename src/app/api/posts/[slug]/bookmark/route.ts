@@ -9,7 +9,7 @@ import Notification from "@/models/Notification";
 // POST /api/posts/[postId]/bookmark — toggle bookmark
 export async function POST(
   _req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);

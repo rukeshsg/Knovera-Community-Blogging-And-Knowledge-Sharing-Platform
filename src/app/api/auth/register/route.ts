@@ -8,7 +8,7 @@ import { rateLimit, getIP, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   const ip = getIP(req);
-  const { success } = rateLimit(`register-${ip}`, 3, 60 * 60 * 1000); // 3 registrations per hour per IP
+  const { success } = rateLimit(`register-${ip}`, 10, 15 * 60 * 1000); // 10 registrations per 15 mins
   if (!success) return rateLimitResponse();
 
   try {

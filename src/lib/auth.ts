@@ -1,9 +1,30 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, DefaultSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import connectToDatabase from "@/lib/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
+
+// Extend NextAuth types securely
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      role: string;
+    } & DefaultSession["user"];
+  }
+  interface User {
+    id: string;
+    role?: string | null;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id?: string | null;
+    role?: string | null;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -44,7 +65,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === "google") {
         await connectToDatabase();
         let existingUser = await User.findOne({ email: user.email });
@@ -71,21 +92,21 @@ export const authOptions: NextAuthOptions = {
 
         // Attach MongoDB object ID and role to the NextAuth user object for the JWT token
         user.id = existingUser._id.toString();
-        (user as any).role = existingUser.role;
+        user.role = existingUser.role;
       }
       return true;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role || "USER";
+        token.role = user.role || "USER";
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
       return session;
     },

@@ -10,7 +10,7 @@ import { sanitizeHtml } from "@/lib/sanitize";
 // GET /api/posts/[postId]/comments — fetch paginated comments for a post
 export async function GET(
   _req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const { slug: postId } = await params;
@@ -66,7 +66,7 @@ export async function GET(
 // POST /api/posts/[postId]/comments — create a new comment or reply
 export async function POST(
   req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);

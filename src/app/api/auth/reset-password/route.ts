@@ -44,7 +44,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Too many attempts. Please request a new OTP." }, { status: 429 });
     }
 
-    const hashedInput = crypto.createHash("sha256").update(otp).digest("hex");
+    const cleanOtp = String(otp).trim();
+    const hashedInput = crypto.createHash("sha256").update(cleanOtp).digest("hex");
 
     if (hashedInput !== user.resetOtp) {
       user.resetOtpAttempts = (user.resetOtpAttempts ?? 0) + 1;

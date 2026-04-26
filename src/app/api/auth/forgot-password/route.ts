@@ -26,9 +26,12 @@ export async function POST(req: Request) {
     await connectToDatabase();
     const user = await User.findOne({ email });
 
-    // For security, always respond with success to not reveal account existence
-    if (!user || user.authProvider === "GOOGLE") {
+    if (!user) {
       return NextResponse.json({ success: true });
+    }
+
+    if (user.authProvider === "GOOGLE") {
+      return NextResponse.json({ error: "Please sign in with Google." }, { status: 400 });
     }
 
     const otp = generateOtp();

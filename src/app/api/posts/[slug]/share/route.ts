@@ -4,7 +4,7 @@ import Post from "@/models/Post";
 
 export async function POST(
   _req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const { slug: postId } = await params;

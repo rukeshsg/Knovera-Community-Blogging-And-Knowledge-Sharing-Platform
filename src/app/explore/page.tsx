@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
+import ExploreSearchBar from "@/components/ExploreSearchBar";
 
 export const metadata: Metadata = {
   title: "Explore | Knovera",
@@ -75,17 +76,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-heading font-black text-[var(--color-text-primary)] mb-6">Explore</h1>
           {/* Search Bar */}
-          <form method="GET" action="/explore" className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-secondary)]" />
-            <input
-              type="text"
-              name="q"
-              defaultValue={q}
-              placeholder="Search stories, topics, or keywords..."
-              className="w-full pl-12 pr-4 py-4 border border-[var(--color-bg-secondary)] bg-[var(--background)] rounded-2xl text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all shadow-sm text-lg"
-            />
-            {tag && <input type="hidden" name="tag" value={tag} />}
-          </form>
+          <ExploreSearchBar initialQuery={q} initialTag={tag} />
         </div>
       </div>
 

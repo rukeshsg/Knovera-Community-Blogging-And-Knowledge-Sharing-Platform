@@ -16,13 +16,14 @@ export async function PATCH(req: Request) {
     if (!success) return rateLimitResponse();
 
     const body = await req.json();
-    const { name, image, bio, website, twitter, github } = body;
+    const { name, image, coverImage, bio, website, twitter, github } = body;
 
     await connectToDatabase();
 
     const updates: any = {};
     if (name) updates.name = name.trim();
     if (image) updates.image = image;
+    if (coverImage !== undefined) updates.coverImage = coverImage;
     
     // Profile sub-document
     updates.profile = {};

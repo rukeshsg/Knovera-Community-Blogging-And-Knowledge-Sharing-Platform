@@ -21,6 +21,7 @@ function notificationText(n: Notification) {
     case "REPLY_COMMENT": return `${n.sender.name} replied to your comment`;
     case "FOLLOW": return `${n.sender.name} started following you`;
     case "BOOKMARK_POST": return `${n.sender.name} bookmarked your post`;
+    case "MESSAGE": return `${n.sender.name} sent you a message request`;
     default: return `${n.sender.name} interacted with your content`;
   }
 }
@@ -162,7 +163,7 @@ export default function NotificationsPage() {
             {notifications.map((n, i) => (
               <Link
                 key={`${n._id}-${i}`}
-                href={n.post ? `/post/${n.post.slug}` : (n.sender._id ? `/profile/${n.sender._id}` : "#")}
+                href={n.type === "MESSAGE" ? `/messages?with=${n.sender._id ?? ""}` : (n.post ? `/post/${n.post.slug}` : (n.sender._id ? `/profile/${n.sender._id}` : "#"))}
                 className={`flex items-start gap-4 px-6 py-5 transition-all hover:bg-[var(--color-bg-soft)] ${!n.isRead ? "bg-[var(--color-primary)]/5 border-l-4 border-l-[var(--color-primary)] pl-5" : "pl-6"} ${i < notifications.length - 1 ? "border-b border-[var(--color-bg-secondary)]/50" : ""}`}
               >
                 {n.sender.image ? (

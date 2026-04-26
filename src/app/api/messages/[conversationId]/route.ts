@@ -7,7 +7,7 @@ import { Conversation, Message } from "@/models/Message";
 // GET /api/messages/[conversationId] — get messages in a conversation
 export async function GET(
   _req: Request,
-  { params }: { params: { conversationId: string } }
+  { params }: { params: Promise<{ conversationId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);

@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 
 interface Notification {
@@ -20,6 +21,7 @@ function notificationText(n: Notification) {
     case "REPLY_COMMENT": return `${n.sender.name} replied to your comment`;
     case "FOLLOW": return `${n.sender.name} started following you`;
     case "BOOKMARK_POST": return `${n.sender.name} bookmarked your post`;
+    case "MESSAGE": return `${n.sender.name} sent you a message request`;
     default: return `${n.sender.name} interacted with your content`;
   }
 }
@@ -113,12 +115,12 @@ export default function NotificationBell() {
                 notifications.map((n) => (
                   <Link
                     key={n._id}
-                    href={n.post ? `/post/${n.post.slug}` : `/profile/${n.sender._id ?? ""}`}
+                    href={n.type === "MESSAGE" ? `/messages?with=${n.sender._id ?? ""}` : (n.post ? `/post/${n.post.slug}` : `/profile/${n.sender._id ?? ""}`)}
                     onClick={() => setOpen(false)}
                     className={`flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-bg-soft)] transition-colors border-b border-[var(--color-bg-secondary)] last:border-0 ${!n.isRead ? "bg-[var(--color-primary)]/5" : ""}`}
                   >
                     {n.sender.image ? (
-                      <img src={n.sender.image} alt={n.sender.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0 mt-0.5" />
+                      <Image src={n.sender.image} alt={n.sender.name} width={36} height={36} className="w-9 h-9 rounded-full object-cover flex-shrink-0 mt-0.5" />
                     ) : (
                       <div className="w-9 h-9 rounded-full bg-[var(--color-bg-secondary)] flex items-center justify-center text-[var(--color-primary)] font-bold text-sm flex-shrink-0 mt-0.5">
                         {n.sender.name.charAt(0)}
@@ -126,7 +128,7 @@ export default function NotificationBell() {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-[var(--color-text-primary)] leading-snug">{notificationText(n)}</p>
-                      {n.post && <p className="text-xs text-[var(--color-text-secondary)] truncate mt-0.5">"{n.post.title}"</p>}
+                      {n.post && <p className="text-xs text-[var(--color-text-secondary)] truncate mt-0.5">&quot;{n.post.title}&quot;</p>}
                       <p className="text-xs text-[var(--color-text-secondary)] mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
                     </div>
                     {!n.isRead && <div className="w-2 h-2 rounded-full bg-[var(--color-primary)] flex-shrink-0 mt-1.5" />}

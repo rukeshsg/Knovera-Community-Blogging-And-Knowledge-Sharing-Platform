@@ -7,7 +7,7 @@ import Comment from "@/models/Comment";
 // DELETE /api/comments/[commentId] — soft delete own comment
 export async function DELETE(
   _req: Request,
-  { params }: { params: { commentId: string } }
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -36,7 +36,7 @@ export async function DELETE(
 // POST /api/comments/[commentId]/like — toggle like on a comment
 export async function POST(
   _req: Request,
-  { params }: { params: { commentId: string } }
+  { params }: { params: Promise<{ commentId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);

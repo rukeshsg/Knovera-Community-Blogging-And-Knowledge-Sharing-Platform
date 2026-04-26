@@ -7,6 +7,7 @@ import Image from "next/image";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import FollowButton from "@/components/FollowButton";
+import ProfileBanner from "@/components/ProfileBanner";
 import { Globe, Globe2, Code2, BookOpen, Eye, Heart, Users, UserCheck, FileEdit } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -50,9 +51,18 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
   if (!data) notFound();
 
   const { user, posts } = data;
-  const isFollowing = session?.user?.id
-    ? user.followers?.some((fId: any) => fId.toString() === session.user.id)
+  const currentUserId = session?.user?.id ?? "";
+  const isFollowing = currentUserId
+    ? user.followers?.some((fId: any) => fId.toString() === currentUserId)
     : false;
+  const hasRequested = currentUserId
+    ? user.followRequestsReceived?.some((fId: any) => fId.toString() === currentUserId)
+    : false;
+  const followState: "none" | "following" | "requested" = isFollowing
+    ? "following"
+    : hasRequested
+    ? "requested"
+    : "none";
 
   // Stats should always reflect published posts
   const publishedPostsCount = await Post.countDocuments({ author: id, isPublished: true });
@@ -63,10 +73,11 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
-      {/* Cover */}
-      <div className="bg-gradient-to-br from-[var(--color-primary)] to-[#7a350b] h-48 relative">
-        <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
-      </div>
+      <ProfileBanner
+        initialCoverImage={user.coverImage}
+        isOwnProfile={isOwnProfile}
+        userId={id}
+      />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 pb-16">
         {/* Profile Card */}
@@ -97,14 +108,14 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
                     <>
                       <FollowButton
                         userId={id}
-                        initialFollowing={isFollowing}
+                        initialState={followState}
                         initialCount={user.followers?.length ?? 0}
                         isLoggedIn={!!session}
                         isOwnProfile={isOwnProfile}
                       />
                       <Link
                         href={`/messages?with=${id}`}
-                        className="px-4 py-2 text-sm font-semibold border border-[var(--color-bg-secondary)] rounded-xl hover:bg-[var(--color-bg-soft)] transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border border-[var(--color-bg-secondary)] rounded-xl hover:bg-[var(--color-bg-soft)] transition-colors"
                       >
                         Message
                       </Link>

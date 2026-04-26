@@ -7,7 +7,7 @@ import Post from "@/models/Post";
 // POST /api/posts/[postId]/like — toggle like on a post
 export async function POST(
   _req: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);

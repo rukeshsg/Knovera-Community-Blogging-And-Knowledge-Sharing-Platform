@@ -50,6 +50,7 @@ export default function PostFeed({ initialPosts }: { initialPosts: Post[] }) {
   };
 
   useEffect(() => {
+    const currentTarget = observerTarget.current;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore) {
@@ -59,16 +60,17 @@ export default function PostFeed({ initialPosts }: { initialPosts: Post[] }) {
       { threshold: 1.0 }
     );
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
+    if (currentTarget) {
+      observer.observe(currentTarget);
     }
 
     return () => {
-      if (observerTarget.current) {
-        observer.unobserve(observerTarget.current);
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
       }
     };
-  }, [observerTarget, hasMore, page, loading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, page, loading]);
 
   return (
     <div className="space-y-12">
@@ -105,7 +107,7 @@ export default function PostFeed({ initialPosts }: { initialPosts: Post[] }) {
               <div className="flex items-center justify-between pt-5 border-t border-[var(--color-bg-secondary)]/50">
                 <div className="flex items-center gap-3">
                   {post.author.image ? (
-                    <img src={post.author.image} alt={post.author.name} className="w-9 h-9 rounded-xl object-cover ring-2 ring-[var(--color-primary)]/10" />
+                    <Image src={post.author.image} alt={post.author.name} width={36} height={36} className="w-9 h-9 rounded-xl object-cover ring-2 ring-[var(--color-primary)]/10" />
                   ) : (
                     <div className="w-9 h-9 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)] font-black text-xs">
                       {post.author.name.charAt(0)}
@@ -139,7 +141,7 @@ export default function PostFeed({ initialPosts }: { initialPosts: Post[] }) {
           <p className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-secondary)] opacity-30">Scroll for more</p>
         ) : (
           <div className="flex flex-col items-center gap-4 py-8 px-10 bg-[var(--color-bg-soft)] rounded-3xl border border-[var(--color-bg-secondary)] border-dashed">
-             <p className="text-sm font-bold text-[var(--color-text-primary)]">You've reached the end!</p>
+             <p className="text-sm font-bold text-[var(--color-text-primary)]">You&apos;ve reached the end!</p>
              <Link href="/explore" className="flex items-center gap-2 text-xs font-black text-[var(--color-primary)] uppercase tracking-widest hover:gap-3 transition-all">
                Explore more topics <ArrowRight size={14} />
              </Link>

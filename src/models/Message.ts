@@ -1,16 +1,21 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
-// Conversation between exactly two users
+// Conversation between exactly two users with request-based gating
 export interface IConversation extends Document {
   participants: Types.ObjectId[];
+  requestedBy: Types.ObjectId;
+  status: "PENDING" | "ACCEPTED" | "REJECTED";
   lastMessage?: Types.ObjectId;
   lastMessageAt: Date;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 const ConversationSchema: Schema = new Schema(
   {
     participants: [{ type: Schema.Types.ObjectId, ref: "User", required: true }],
+    requestedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    status: { type: String, enum: ["PENDING", "ACCEPTED", "REJECTED"], default: "PENDING" },
     lastMessage: { type: Schema.Types.ObjectId, ref: "Message" },
     lastMessageAt: { type: Date, default: Date.now },
   },
@@ -18,6 +23,7 @@ const ConversationSchema: Schema = new Schema(
 );
 
 ConversationSchema.index({ participants: 1, lastMessageAt: -1 });
+ConversationSchema.index({ participants: 1, status: 1 });
 
 export const Conversation =
   mongoose.models.Conversation ||
@@ -30,13 +36,14 @@ export interface IMessage extends Document {
   content: string;
   isRead: boolean;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 const MessageSchema: Schema = new Schema(
   {
     conversation: { type: Schema.Types.ObjectId, ref: "Conversation", required: true },
     sender: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    content: { type: String, required: true, maxlength: 5000 },
+    content: { type: String, required: true, maxlength: 5000, trim: true },
     isRead: { type: Boolean, default: false },
   },
   { timestamps: true }

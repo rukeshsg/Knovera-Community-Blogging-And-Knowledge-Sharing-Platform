@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth";
 import CommentsSection from "@/components/CommentsSection";
 import LikeButton from "@/components/LikeButton";
 import { BookmarkButton, ShareButton } from "@/components/PostActions";
+import FollowButton from "@/components/FollowButton";
 import { Eye, Clock, Tag } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -68,9 +69,32 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
 
   const comments = await getComments(post._id.toString());
   const isLiked = session?.user?.id ? post.likes.some((id: any) => id.toString() === session.user.id) : false;
-  const isBookmarked = session?.user?.id
-    ? (await import("@/models/User").then(m => m.default.findById(session.user.id).select("bookmarks").lean()) as any)?.bookmarks?.some((id: any) => id.toString() === post._id.toString()) ?? false
-    : false;
+  
+  const currentUserId = session?.user?.id ?? "";
+  
+  let isBookmarked = false;
+  let isFollowing = false;
+  let hasRequested = false;
+  let isOwnProfile = false;
+
+  if (currentUserId) {
+    const userDoc = await import("@/models/User").then(m => m.default.findById(currentUserId).select("bookmarks following followRequestsSent").lean()) as any;
+    isBookmarked = userDoc?.bookmarks?.some((id: any) => id.toString() === post._id.toString()) ?? false;
+    isOwnProfile = currentUserId === post.author._id.toString();
+    
+    // We need the author's followers/requests arrays to compute the follow state accurately
+    const authorDoc = await import("@/models/User").then(m => m.default.findById(post.author._id).select("followers followRequestsReceived").lean()) as any;
+    if (authorDoc) {
+      isFollowing = authorDoc.followers?.some((fId: any) => fId.toString() === currentUserId);
+      hasRequested = authorDoc.followRequestsReceived?.some((fId: any) => fId.toString() === currentUserId);
+    }
+  }
+
+  const followState: "none" | "following" | "requested" = isFollowing
+    ? "following"
+    : hasRequested
+    ? "requested"
+    : "none";
 
   return (
     <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
@@ -126,6 +150,24 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
               <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{post.views}</span>
             </div>
           </div>
+          
+          {!isOwnProfile && (
+            <div className="flex items-center gap-2 ml-4 border-l pl-4 border-[var(--color-bg-secondary)]">
+              <FollowButton
+                userId={post.author._id.toString()}
+                initialState={followState}
+                initialCount={0} // We don't display follower count in this specific button instance
+                isLoggedIn={!!session}
+                isOwnProfile={isOwnProfile}
+              />
+              <Link
+                href={`/messages?with=${post.author._id.toString()}`}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border border-[var(--color-bg-secondary)] rounded-xl hover:bg-[var(--color-bg-soft)] transition-colors"
+              >
+                Message
+              </Link>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <LikeButton

@@ -6,13 +6,25 @@ if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
 }
 
-let cached = (global as any).mongoose;
+// Extend the global object to hold the cached connection
+declare global {
+  var mongoose: {
+    conn: mongoose.Connection | mongoose.Mongoose | null;
+    promise: Promise<mongoose.Connection | mongoose.Mongoose> | null;
+  } | undefined;
+}
+
+let cached = global.mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
 async function connectToDatabase() {
+  if (!cached) {
+    cached = global.mongoose = { conn: null, promise: null };
+  }
+
   if (cached.conn) {
     return cached.conn;
   }

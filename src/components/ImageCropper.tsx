@@ -66,7 +66,7 @@ export default function ImageCropper({ imageSrc, onCrop, onCancel }: ImageCroppe
       draw();
     };
     img.src = imageSrc;
-  }, [imageSrc]);
+  }, [imageSrc, draw]);
 
   useEffect(() => {
     draw();

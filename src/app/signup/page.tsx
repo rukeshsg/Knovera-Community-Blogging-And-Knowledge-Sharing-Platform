@@ -9,6 +9,7 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -16,6 +17,12 @@ export default function SignupPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -33,12 +40,12 @@ export default function SignupPage() {
       
       const loginRes = await signIn("credentials", { redirect: false, email, password });
       if (loginRes?.error) {
-        throw new Error("Registration successful, but login failed.");
+        throw new Error(loginRes.error || "Registration successful, but login failed.");
       } else {
         router.push("/");
       }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -48,21 +55,11 @@ export default function SignupPage() {
     <div className="flex min-h-screen -mt-16">
       {/* Left side: Premium Branding */}
       <div 
-        className="hidden lg:flex lg:w-1/2 text-white flex-col justify-between p-12 relative overflow-hidden bg-black"
+        className="hidden lg:flex lg:w-1/2 text-white flex-col p-12 relative overflow-hidden bg-black"
         style={{ backgroundImage: "url('/assets/auth-bg.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}
       >
         <div className="absolute inset-0 bg-black/50 z-0"></div>
-        <div className="relative z-10">
-          <Link href="/">
-            <div className="relative h-12 w-[160px] mb-16">
-              <Image 
-                src="/assets/knovera-logo-white.png" 
-                alt="Knovera Logo" 
-                fill
-                className="object-contain object-left"
-              />
-            </div>
-          </Link>
+        <div className="relative z-10 flex-1 flex flex-col justify-center">
           <h1 className="text-5xl lg:text-6xl font-heading font-bold leading-tight mb-6">
             Where Ideas <br/>Connect and Grow.
           </h1>
@@ -71,7 +68,7 @@ export default function SignupPage() {
           </p>
         </div>
         
-        <div className="relative z-10">
+        <div className="relative z-10 mt-auto">
           <div className="flex -space-x-4 mb-4">
              <div className="w-12 h-12 rounded-full border-2 border-[var(--color-primary)] bg-white/20 backdrop-blur flex items-center justify-center font-bold text-sm">JS</div>
              <div className="w-12 h-12 rounded-full border-2 border-[var(--color-primary)] bg-white/30 backdrop-blur flex items-center justify-center font-bold text-sm">AL</div>
@@ -107,6 +104,10 @@ export default function SignupPage() {
             <div>
               <label className="block text-sm font-medium mb-1 text-[var(--color-text-secondary)]">Password</label>
               <input className="w-full p-3 border border-[var(--color-bg-secondary)] bg-[var(--background)] rounded-lg text-[var(--color-text-primary)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent outline-none transition-all" type="password" placeholder="••••••••" required value={password} onChange={e=>setPassword(e.target.value)} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-[var(--color-text-secondary)]">Confirm Password</label>
+              <input className="w-full p-3 border border-[var(--color-bg-secondary)] bg-[var(--background)] rounded-lg text-[var(--color-text-primary)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent outline-none transition-all" type="password" placeholder="••••••••" required value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} />
             </div>
             
             <button disabled={loading} className="mt-2 bg-[var(--color-primary)] text-white p-3.5 rounded-lg hover:bg-[var(--color-primary-soft)] font-medium transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed" type="submit">

@@ -1,16 +1,27 @@
 "use client";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam === "invalid_token") setError("Invalid or expired verification link.");
+    if (errorParam === "server_error") setError("An error occurred during verification.");
+    
+    const verifiedParam = searchParams.get("verified");
+    if (verifiedParam === "true") setSuccess("Email verified successfully! You can now log in.");
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,12 +31,12 @@ export default function LoginPage() {
     try {
       const res = await signIn("credentials", { redirect: false, email, password });
       if (res?.error) {
-        setError("Invalid email or password");
+        setError(res.error);
       } else {
         router.push("/");
       }
     } catch (err: any) {
-      setError("An unexpected error occurred.");
+      setError(err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -35,21 +46,11 @@ export default function LoginPage() {
     <div className="flex min-h-screen -mt-16">
       {/* Left side: Premium Branding — full viewport height */}
       <div 
-        className="hidden lg:flex lg:w-1/2 text-white flex-col justify-between p-12 relative overflow-hidden bg-black"
+        className="hidden lg:flex lg:w-1/2 text-white flex-col p-12 relative overflow-hidden bg-black"
         style={{ backgroundImage: "url('/assets/auth-bg.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}
       >
         <div className="absolute inset-0 bg-black/50 z-0"></div>
-        <div className="relative z-10">
-          <Link href="/">
-            <div className="relative h-12 w-[160px] mb-16">
-              <Image 
-                src="/assets/knovera-logo-white.png" 
-                alt="Knovera Logo" 
-                fill
-                className="object-contain object-left"
-              />
-            </div>
-          </Link>
+        <div className="relative z-10 flex-1 flex flex-col justify-center">
           <h1 className="text-5xl lg:text-6xl font-heading font-bold leading-tight mb-6">
             Welcome back to <br/>Knovera.
           </h1>
@@ -58,7 +59,7 @@ export default function LoginPage() {
           </p>
         </div>
         
-        <div className="relative z-10">
+        <div className="relative z-10 mt-auto">
           <div className="flex -space-x-4 mb-4">
              <div className="w-12 h-12 rounded-full border-2 border-[var(--color-primary)] bg-white/20 backdrop-blur flex items-center justify-center font-bold text-sm">JS</div>
              <div className="w-12 h-12 rounded-full border-2 border-[var(--color-primary)] bg-white/30 backdrop-blur flex items-center justify-center font-bold text-sm">AL</div>
@@ -81,6 +82,7 @@ export default function LoginPage() {
           </div>
 
           {error && <div className="text-red-500 mb-6 p-4 bg-red-50 dark:bg-red-950/20 rounded-lg text-sm border border-red-100 dark:border-red-900/30">{error}</div>}
+          {success && <div className="text-green-600 dark:text-green-400 mb-6 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg text-sm border border-green-100 dark:border-green-900/30 font-medium">{success}</div>}
           
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             <div>
@@ -118,5 +120,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

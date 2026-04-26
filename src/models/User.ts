@@ -5,10 +5,12 @@ export interface IUser extends Document {
   email: string;
   password?: string;
   image?: string;
+  coverImage?: string;
   role: "USER" | "CREATOR" | "MODERATOR" | "ADMIN";
   authProvider: "CREDENTIALS" | "GOOGLE";
   providerAccountId?: string;
   isEmailVerified: boolean;
+  isPrivate: boolean;
   verificationToken?: string;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
@@ -17,14 +19,12 @@ export interface IUser extends Document {
   resetOtpAttempts?: number;
   followers: Types.ObjectId[];
   following: Types.ObjectId[];
+  followRequestsSent: Types.ObjectId[];
+  followRequestsReceived: Types.ObjectId[];
   bookmarks: Types.ObjectId[];
   profile?: {
     bio?: string;
-    socialLinks?: {
-      twitter?: string;
-      github?: string;
-      website?: string;
-    };
+    socialLinks?: { twitter?: string; github?: string; website?: string };
   };
 }
 
@@ -32,20 +32,14 @@ const UserSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String }, // Optional
+    password: { type: String },
     image: { type: String },
-    role: {
-      type: String,
-      enum: ["USER", "CREATOR", "MODERATOR", "ADMIN"],
-      default: "USER",
-    },
-    authProvider: {
-      type: String,
-      enum: ["CREDENTIALS", "GOOGLE"],
-      default: "CREDENTIALS",
-    },
+    coverImage: { type: String },
+    role: { type: String, enum: ["USER", "CREATOR", "MODERATOR", "ADMIN"], default: "USER" },
+    authProvider: { type: String, enum: ["CREDENTIALS", "GOOGLE"], default: "CREDENTIALS" },
     providerAccountId: { type: String },
     isEmailVerified: { type: Boolean, default: false },
+    isPrivate: { type: Boolean, default: false },
     verificationToken: { type: String },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
@@ -54,6 +48,8 @@ const UserSchema: Schema = new Schema(
     resetOtpAttempts: { type: Number, default: 0 },
     followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    followRequestsSent: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    followRequestsReceived: [{ type: Schema.Types.ObjectId, ref: "User" }],
     bookmarks: [{ type: Schema.Types.ObjectId, ref: "Post" }],
     profile: {
       bio: { type: String },
@@ -66,5 +62,8 @@ const UserSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+
+UserSchema.index({ followers: 1 });
+UserSchema.index({ following: 1 });
 
 export default mongoose.models.User || mongoose.model<IUser>("User", UserSchema);

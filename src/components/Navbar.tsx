@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import NotificationBell from "@/components/NotificationBell";
-import { Search, Moon, Sun, LogOut, User, MessageSquare, Bookmark, ChevronDown, Settings, X } from 'lucide-react';
+import { Search, Moon, Sun, LogOut, User, MessageSquare, Bookmark, ChevronDown, Settings, X, Loader2, Calendar } from 'lucide-react';
 
 function SignOutModal({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
   return (
@@ -16,7 +16,7 @@ function SignOutModal({ onConfirm, onCancel }: { onConfirm: () => void; onCancel
       >
         <div className="flex flex-col gap-1">
           <h3 id="signout-title" className="font-heading font-bold text-lg text-[var(--color-text-primary)]">Sign out?</h3>
-          <p className="text-sm text-[var(--color-text-secondary)]">You'll need to sign in again to access your account.</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">You&apos;ll need to sign in again to access your account.</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -44,13 +44,74 @@ export default function Navbar() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const menuRef = useRef<HTMLDivElement>(null);
+  const searchAbortController = useRef<AbortController | null>(null);
+
+  // Live search debounce
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
+      setSearchResults([]);
+      setSearchError("");
+      setSelectedIndex(-1);
+      if (searchAbortController.current) {
+        searchAbortController.current.abort();
+      }
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError("");
+
+    if (searchAbortController.current) {
+      searchAbortController.current.abort();
+    }
+    const abortController = new AbortController();
+    searchAbortController.current = abortController;
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`, {
+          signal: abortController.signal
+        });
+        if (!res.ok) throw new Error("Search failed");
+        const data = await res.json();
+        setSearchResults(data.results || []);
+        setSelectedIndex(-1);
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          setSearchError("Failed to fetch results.");
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsSearching(false);
+        }
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const highlightMatch = (text: string, query: string) => {
+    if (!query) return text;
+    const parts = text.split(new RegExp(`(${query})`, "gi"));
+    return parts.map((part, i) => 
+      part.toLowerCase() === query.toLowerCase() 
+        ? <span key={i} className="bg-[var(--color-primary)]/20 text-[var(--color-primary)] font-bold px-0.5 rounded">{part}</span> 
+        : part
+    );
+  };
 
   // Initialize theme from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const dark = saved === "dark" || (!saved && prefersDark);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDarkMode(dark);
     document.documentElement.classList.toggle("dark", dark);
   }, []);
@@ -102,15 +163,15 @@ export default function Navbar() {
                   fill
                   priority
                   sizes="192px"
-                  className="dark:hidden object-contain object-left"
+                  className="dark:hidden object-contain object-left mix-blend-multiply"
                 />
                 <Image
-                  src="/assets/knovera-logo-white.png"
+                  src="/assets/knovera-logo-dark.png"
                   alt="Knovera Logo"
                   fill
                   priority
                   sizes="192px"
-                  className="hidden dark:block object-contain object-left"
+                  className="hidden dark:block object-contain object-left mix-blend-screen"
                 />
               </div>
             </Link>
@@ -134,16 +195,105 @@ export default function Navbar() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && searchQuery.trim()) {
-                        window.location.href = `/explore?q=${encodeURIComponent(searchQuery.trim())}`;
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        setSelectedIndex(prev => Math.min(prev + 1, searchResults.length - 1));
+                      } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        setSelectedIndex(prev => Math.max(prev - 1, -1));
+                      } else if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (selectedIndex >= 0 && searchResults[selectedIndex]) {
+                          window.location.href = `/post/${searchResults[selectedIndex].slug}`;
+                        } else if (searchQuery.trim()) {
+                          window.location.href = `/explore?q=${encodeURIComponent(searchQuery.trim())}`;
+                        }
+                      } else if (e.key === "Escape") {
+                        setShowSearch(false);
                       }
-                      if (e.key === "Escape") setShowSearch(false);
                     }}
                   />
-                  <button onClick={() => setShowSearch(false)} className="p-2 hover:bg-[var(--color-bg-soft)] rounded-full transition-colors text-[var(--color-text-secondary)]">
+                  <button onClick={() => {
+                    setShowSearch(false);
+                    setSearchQuery("");
+                  }} className="p-2 hover:bg-[var(--color-bg-soft)] rounded-full transition-colors text-[var(--color-text-secondary)]">
                     <X className="w-6 h-6" />
                   </button>
                 </div>
+
+                {/* Live Search Dropdown */}
+                {searchQuery.trim() && (
+                  <div className="absolute top-16 left-0 right-0 bg-[var(--background)] border-b border-[var(--color-bg-secondary)] shadow-2xl z-40 max-h-[70vh] overflow-y-auto">
+                    <div className="max-w-4xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                      {isSearching ? (
+                        <div className="space-y-4">
+                          {[1, 2, 3].map(i => (
+                            <div key={i} className="flex gap-4 items-start animate-pulse">
+                              <div className="w-16 h-12 bg-[var(--color-bg-secondary)] rounded-lg"></div>
+                              <div className="flex-1 space-y-2">
+                                <div className="h-4 bg-[var(--color-bg-secondary)] rounded w-3/4"></div>
+                                <div className="h-3 bg-[var(--color-bg-secondary)] rounded w-1/4"></div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : searchError ? (
+                        <div className="py-8 text-center text-red-500">{searchError}</div>
+                      ) : searchResults.length > 0 ? (
+                        <div className="flex flex-col">
+                          <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">
+                            Top results for &quot;{searchQuery}&quot;
+                          </h3>
+                          <div className="space-y-1" role="listbox">
+                            {searchResults.map((post, idx) => (
+                              <Link 
+                                key={post._id} 
+                                href={`/post/${post.slug}`}
+                                className={`flex gap-4 items-start p-3 rounded-xl hover:bg-[var(--color-bg-soft)] transition-colors ${selectedIndex === idx ? 'bg-[var(--color-bg-soft)] ring-2 ring-[var(--color-primary)]/20' : ''}`}
+                                role="option"
+                                aria-selected={selectedIndex === idx}
+                                onClick={() => setShowSearch(false)}
+                              >
+                                {post.coverImage ? (
+                                  <div className="relative w-20 h-14 shrink-0 rounded-lg overflow-hidden bg-[var(--color-bg-secondary)]">
+                                    <Image src={post.coverImage} alt={post.title} fill className="object-cover" />
+                                  </div>
+                                ) : (
+                                  <div className="w-20 h-14 shrink-0 rounded-lg bg-[var(--color-bg-secondary)] flex items-center justify-center">
+                                    <MessageSquare className="w-5 h-5 text-[var(--color-text-muted)]" />
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="text-base font-bold text-[var(--color-text-primary)] truncate">
+                                    {highlightMatch(post.title, searchQuery)}
+                                  </h4>
+                                  <div className="flex items-center gap-2 mt-1 text-xs text-[var(--color-text-secondary)]">
+                                    <span className="font-medium truncate">{post.author?.name}</span>
+                                    <span>•</span>
+                                    <span className="flex items-center gap-1 shrink-0"><Calendar className="w-3 h-3" /> {new Date(post.createdAt).toLocaleDateString()}</span>
+                                  </div>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                          <Link
+                            href={`/explore?q=${encodeURIComponent(searchQuery.trim())}`}
+                            onClick={() => setShowSearch(false)}
+                            className="mt-4 p-3 text-center text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-colors border border-[var(--color-primary)]/20"
+                          >
+                            See all results
+                          </Link>
+                        </div>
+                      ) : (
+                        <div className="py-12 flex flex-col items-center justify-center text-center">
+                          <Search className="w-12 h-12 text-[var(--color-text-secondary)] mb-4 opacity-50" />
+                          <h3 className="text-lg font-bold text-[var(--color-text-primary)]">No results found</h3>
+                          <p className="text-[var(--color-text-secondary)] mt-1">We couldn&apos;t find any stories matching &quot;{searchQuery}&quot;</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <button 
@@ -174,7 +324,7 @@ export default function Navbar() {
                   aria-haspopup="true"
                 >
                   {session.user?.image ? (
-                    <img src={session.user.image} alt="Profile" className="w-7 h-7 rounded-full ring-2 ring-[var(--color-primary)]/30" />
+                    <Image src={session.user.image} alt="Profile" width={28} height={28} className="w-7 h-7 rounded-full ring-2 ring-[var(--color-primary)]/30 object-cover" />
                   ) : (
                     <div className="w-7 h-7 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-xs font-bold">
                       {session.user?.name?.charAt(0) ?? "?"}

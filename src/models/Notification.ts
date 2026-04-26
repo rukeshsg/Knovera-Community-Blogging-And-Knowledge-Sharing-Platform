@@ -6,7 +6,8 @@ export type NotificationType =
   | "REPLY_COMMENT"
   | "FOLLOW"
   | "BOOKMARK_POST"
-  | "MENTION";
+  | "MENTION"
+  | "MESSAGE";
 
 export interface INotification extends Document {
   recipient: Types.ObjectId;
@@ -24,7 +25,7 @@ const NotificationSchema: Schema = new Schema(
     sender: { type: Schema.Types.ObjectId, ref: "User", required: true },
     type: {
       type: String,
-      enum: ["LIKE_POST", "COMMENT_POST", "REPLY_COMMENT", "FOLLOW", "BOOKMARK_POST", "MENTION"],
+      enum: ["LIKE_POST", "COMMENT_POST", "REPLY_COMMENT", "FOLLOW", "BOOKMARK_POST", "MENTION", "MESSAGE"],
       required: true,
     },
     post: { type: Schema.Types.ObjectId, ref: "Post" },
