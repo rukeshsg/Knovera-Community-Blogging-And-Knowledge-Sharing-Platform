@@ -35,13 +35,37 @@
 
 <div align="center">
 
-  <h2>Knovera Platform Preview</h2>
-  <p><i>Click the image below to watch the full demo video</i></p>
+  <!-- Title -->
+  <h1>Knovera Platform</h1>
 
-  <a href="./assets/videos/knovera.mp4">
-    <img src="./assets/images/landing-page-dark.png" width="900" alt="Knovera Demo Preview"
-    style="border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.25);" />
+  <!-- Subtitle -->
+  <p>
+    <strong>Interactive Product Preview</strong>
+  </p>
+
+  <!-- Description -->
+  <p>
+    Experience the platform in action. Click the preview below to watch the full demo video.
+  </p>
+
+  <!-- Preview Image -->
+  <a href="./assets/videos/knovera.mp4" target="_blank">
+    <img 
+      src="./assets/images/landing-page-dark.png" 
+      width="900" 
+      alt="Knovera Platform Demo Preview"
+      style="
+        border-radius:16px; 
+        box-shadow:0 12px 30px rgba(0,0,0,0.25); 
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      "
+    />
   </a>
+
+  <!-- Optional Caption -->
+  <p>
+    <sub>Click the preview to view the full demo</sub>
+  </p>
 
 </div>
 
