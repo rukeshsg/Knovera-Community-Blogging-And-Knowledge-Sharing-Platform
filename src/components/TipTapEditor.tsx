@@ -47,7 +47,7 @@ function ToolbarButton({
       >
         {icon}
       </button>
-      <div className="absolute bottom-full mb-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 delay-150 ease-out translate-y-1 group-hover:translate-y-0 z-50">
+      <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 delay-150 ease-out -translate-y-1 group-hover:translate-y-0 z-50">
         <div className="bg-black text-white text-xs font-medium px-2.5 py-1.5 rounded-md whitespace-nowrap shadow-xl">
           {label}
         </div>
@@ -259,7 +259,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
             >
               <LinkIcon size={18} />
             </button>
-            <div className="absolute bottom-full mb-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 delay-150 z-50">
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 delay-150 z-50">
               <div className="bg-black text-white text-xs font-medium px-2.5 py-1.5 rounded-md whitespace-nowrap shadow-xl">Insert Link (Ctrl+K)</div>
             </div>
           </div>
