@@ -217,9 +217,9 @@ export default function MediaPickerModal({ mode, onInsertImages, onInsertUrl, on
           {(tab === "url" || mode === "youtube") && (
             <div className="space-y-4">
               {mode === "youtube" && (
-                <div className="flex items-center gap-2 p-3 bg-red-950/30 border border-red-800/40 rounded-xl">
-                  <YoutubeIcon size={16} className="text-red-400 shrink-0" />
-                  <p className="text-xs text-red-300">Paste a YouTube video URL to embed it in your story</p>
+                <div className="flex items-center gap-2 p-3 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/25 rounded-xl">
+                  <YoutubeIcon size={16} className="text-[var(--color-primary)] shrink-0" />
+                  <p className="text-xs text-[var(--color-primary)]/80">Paste a YouTube video URL to embed it in your story</p>
                 </div>
               )}
 
@@ -253,7 +253,7 @@ export default function MediaPickerModal({ mode, onInsertImages, onInsertUrl, on
               <button
                 onClick={handleInsertUrl}
                 disabled={isInserting || !url.trim()}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-[var(--color-primary)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {isInserting ? <><Loader2 size={16} className="animate-spin" /> Inserting...</> : mode === "youtube" ? "Embed Video" : "Insert Media"}
               </button>

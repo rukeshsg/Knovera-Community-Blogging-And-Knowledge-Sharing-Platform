@@ -208,7 +208,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 
   return (
     <>
-    <div className="flex flex-wrap items-center gap-2 p-2 border-b border-[var(--color-bg-secondary)] bg-[var(--background)] sticky top-0 z-10">
+    <div className="flex flex-wrap items-center gap-2 p-2 border-b border-[var(--color-bg-secondary)] bg-[var(--background)] sticky top-0 z-20 overflow-visible">
       {/* Text Group */}
       <div className="flex items-center gap-1 border-r border-[var(--color-bg-secondary)] pr-2">
         <ToolbarButton icon={<Bold size={18} />} label="Bold (Ctrl+B)" onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')} />
@@ -253,8 +253,8 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
             </div>
           </div>
           {linkOpen && (
-            <div className="absolute bottom-full left-0 mb-2 z-50 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-3 min-w-[260px]" style={{ animation: 'aiMenuIn 0.15s ease-out' }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Insert Link</p>
+            <div className="absolute top-full left-0 mt-2 z-[200] bg-[#1a1208] border border-[var(--color-primary)]/30 rounded-xl shadow-2xl p-3 min-w-[260px]" style={{ animation: 'aiMenuIn 0.15s ease-out' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-primary)]/70 mb-2">Insert Link</p>
               <input
                 type="url"
                 value={linkUrl}
@@ -262,11 +262,11 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
                 onKeyDown={e => { if (e.key === 'Enter') applyLink(); if (e.key === 'Escape') setLinkOpen(false); }}
                 placeholder="https://example.com"
                 autoFocus
-                className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white placeholder:text-gray-500 outline-none focus:border-blue-500 transition-colors mb-2"
+                className="w-full px-3 py-2 text-sm bg-[#0d0a05] border border-[var(--color-primary)]/20 rounded-lg text-white placeholder:text-gray-500 outline-none focus:border-[var(--color-primary)] transition-colors mb-2"
               />
               <div className="flex gap-2">
-                <button onClick={applyLink} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors">
-                  {linkUrl.trim() ? 'Apply' : 'Remove Link'}
+                <button onClick={applyLink} className="flex-1 py-1.5 bg-[var(--color-primary)] hover:opacity-90 text-white text-xs font-semibold rounded-lg transition-colors">
+                  {linkUrl.trim() ? 'Apply Link' : 'Remove Link'}
                 </button>
                 <button onClick={() => setLinkOpen(false)} className="flex-1 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold rounded-lg transition-colors">Cancel</button>
               </div>
@@ -395,9 +395,11 @@ export default function TipTapEditor({ content, onChange }: { content: string, o
   });
 
   return (
-    <div className="border border-[var(--color-bg-secondary)] rounded-xl overflow-hidden bg-[var(--background)] shadow-sm">
+    <div className="border border-[var(--color-bg-secondary)] rounded-xl bg-[var(--background)] shadow-sm">
       <MenuBar editor={editor} />
-      <EditorContent editor={editor} className="[&_.ProseMirror_ul[data-type=taskList]]:list-none [&_.ProseMirror_ul[data-type=taskList]]:pl-0 [&_.ProseMirror_ul[data-type=taskList]_li]:flex [&_.ProseMirror_ul[data-type=taskList]_li]:items-start [&_.ProseMirror_ul[data-type=taskList]_li>label]:mt-1.5 [&_.ProseMirror_ul[data-type=taskList]_li>label]:mr-2" />
+      <div className="overflow-hidden rounded-b-xl">
+        <EditorContent editor={editor} className="[&_.ProseMirror_ul[data-type=taskList]]:list-none [&_.ProseMirror_ul[data-type=taskList]]:pl-0 [&_.ProseMirror_ul[data-type=taskList]_li]:flex [&_.ProseMirror_ul[data-type=taskList]_li]:items-start [&_.ProseMirror_ul[data-type=taskList]_li>label]:mt-1.5 [&_.ProseMirror_ul[data-type=taskList]_li>label]:mr-2" />
+      </div>
     </div>
   );
 }
