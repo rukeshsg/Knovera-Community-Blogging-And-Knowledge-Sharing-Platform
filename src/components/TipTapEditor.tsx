@@ -57,9 +57,16 @@ function ToolbarButton({
 }
 
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
+  // ── All hooks MUST be before any early return ───────────────────────────
   const [isSaving, setIsSaving] = useState(false);
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [readTime, setReadTime] = useState(0);
+  const [mediaModal, setMediaModal] = useState<'image' | 'gif' | 'youtube' | null>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const linkRef = useRef<HTMLDivElement>(null);
+  const aiMenuRef = useRef<HTMLDivElement>(null);
+  const [aiMenuOpen, setAiMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!editor) return;
@@ -70,18 +77,42 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     };
     editor.on('update', calculateReadTime);
     calculateReadTime();
-    return () => {
-      editor.off('update', calculateReadTime);
-    };
+    return () => { editor.off('update', calculateReadTime); };
   }, [editor]);
 
+  useEffect(() => {
+    if (!linkOpen) return;
+    const h = (e: MouseEvent) => { if (linkRef.current && !linkRef.current.contains(e.target as Node)) setLinkOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [linkOpen]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (aiMenuRef.current && !aiMenuRef.current.contains(e.target as Node)) setAiMenuOpen(false);
+    };
+    if (aiMenuOpen) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [aiMenuOpen]);
+
+  const showToast = useCallback((message: string, type: 'info' | 'success' | 'error' = 'info') => {
+    const existing = document.getElementById('ai-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.id = 'ai-toast';
+    const colors = { info: 'bg-[#7c3aed] text-white', success: 'bg-green-600 text-white', error: 'bg-red-600 text-white' };
+    toast.className = `fixed bottom-5 right-5 z-[9999] flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-sm font-semibold transition-all duration-300 ${colors[type]}`;
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3500);
+  }, []);
+
+  // ── Early return AFTER all hooks ────────────────────────────────────────
   if (!editor) return null;
 
-  // ── Media Modal State ──────────────────────────────────────────────────
-  type MediaMode = 'image' | 'gif' | 'youtube';
-  const [mediaModal, setMediaModal] = useState<MediaMode | null>(null);
-
-  const openMedia = (mode: MediaMode) => setMediaModal(mode);
+  // ── Non-hook helpers (safe after early return) ──────────────────────────
+  const openMedia = (mode: 'image' | 'gif' | 'youtube') => setMediaModal(mode);
 
   const handleInsertImages = (urls: string[]) => {
     urls.forEach(url => editor.chain().focus().setImage({ src: url }).run());
@@ -94,18 +125,6 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
       editor.chain().focus().setImage({ src: url }).run();
     }
   };
-
-  // ── Link Popover State ─────────────────────────────────────────────────
-  const [linkOpen, setLinkOpen] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
-  const linkRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!linkOpen) return;
-    const h = (e: MouseEvent) => { if (linkRef.current && !linkRef.current.contains(e.target as Node)) setLinkOpen(false); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, [linkOpen]);
 
   const applyLink = () => {
     if (!linkUrl.trim()) {
@@ -122,36 +141,6 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     setLinkOpen(true);
   };
 
-  const aiMenuRef = useRef<HTMLDivElement>(null);
-  const [aiMenuOpen, setAiMenuOpen] = useState(false);
-
-  // Close AI menu on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (aiMenuRef.current && !aiMenuRef.current.contains(e.target as Node)) {
-        setAiMenuOpen(false);
-      }
-    };
-    if (aiMenuOpen) document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [aiMenuOpen]);
-
-  const showToast = useCallback((message: string, type: 'info' | 'success' | 'error' = 'info') => {
-    const existing = document.getElementById('ai-toast');
-    if (existing) existing.remove();
-    const toast = document.createElement('div');
-    toast.id = 'ai-toast';
-    const colors = {
-      info: 'bg-[#7c3aed] text-white',
-      success: 'bg-green-600 text-white',
-      error: 'bg-red-600 text-white',
-    };
-    toast.className = `fixed bottom-5 right-5 z-[9999] flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-sm font-semibold transition-all duration-300 ${colors[type]}`;
-    toast.innerHTML = message;
-    document.body.appendChild(toast);
-    requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
-    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3500);
-  }, []);
 
   const runAiAction = async (action: 'improve' | 'summarize' | 'grammar') => {
     setAiMenuOpen(false);
