@@ -259,13 +259,13 @@ export default function WriteClient() {
         />
 
         {/* TipTap Editor */}
-        <div className="min-h-[400px]">
+        <div>
           <TipTapEditor content={content} onChange={setContent} />
         </div>
 
         {/* Tags */}
-        <div className="pt-8 border-t border-[var(--color-bg-secondary)]">
-          <label className="block text-sm font-bold mb-3 text-[var(--color-text-primary)] uppercase tracking-wider">Topics</label>
+        <div className="pt-4 border-t border-[var(--color-bg-secondary)]">
+          <label className="block text-xs font-black mb-2 text-[var(--color-text-secondary)] uppercase tracking-[0.2em]">Topics</label>
           <input 
             type="text" 
             placeholder="Add up to 5 topics (comma separated)..." 
