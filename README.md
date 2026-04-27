@@ -1,20 +1,3 @@
-<br><br>
-
-<div align="center">
-
-  <h3>Experience Knovera Live</h3>
-
-  <p>
-    Explore the community blogging platform in action and see how ideas connect and grow.
-  </p>
-
-  <a href="https://knovera-community-blogging-and-knowledge-sharing-lnxfl7k3a.vercel.app/login" target="_blank">
-    <img 
-      src="https://img.shields.io/badge/🚀_Live_Demo-Try_Knovera-f97316?style=for-the-badge&logo=vercel&logoColor=white"
-      alt="Live Demo"
-    />
-  </a>
-
 </div>
 
 <div align="center">
@@ -54,11 +37,23 @@
 
 
 
-<p align="center">
+<br><br>
+
+<div align="center">
+
+  <h3>Experience Knovera Live</h3>
+
+  <p>
+    Explore the community blogging platform in action and see how ideas connect and grow.
+  </p>
+
   <a href="https://knovera-community-blogging-and-knowledge-sharing-lnxfl7k3a.vercel.app/login" target="_blank">
-    <img src="https://img.shields.io/badge/🚀_Live_Demo-Try_Knovera-1f2937?style=for-the-badge&logo=vercel&logoColor=white" />
+    <img 
+      src="https://img.shields.io/badge/🚀_Live_Demo-Try_Knovera-f97316?style=for-the-badge&logo=vercel&logoColor=white"
+      alt="Live Demo"
+    />
   </a>
-</p>
+
 
 ---
 
