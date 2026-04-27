@@ -65,22 +65,21 @@ export async function POST(req: Request) {
     const recipientFollowsSender = sender?.followers?.some((id: any) => id.toString() === recipientId);
     const isConnected = senderFollowsRecipient && recipientFollowsSender;
 
-    // Use findOneAndUpdate with upsert to completely eliminate race conditions
-    let conversation = await Conversation.findOneAndUpdate(
-      { participants: { $all: [userId, recipientId], $size: 2 } },
-      {
-        $setOnInsert: {
-          participants: [userId, recipientId],
-          requestedBy: userId,
-          status: isConnected ? "ACCEPTED" : "PENDING",
-          lastMessageAt: new Date(),
-        }
-      },
-      { new: true, upsert: true }
-    );
+    let conversation = await Conversation.findOne({
+      participants: { $all: [userId, recipientId], $size: 2 }
+    });
+
+    if (!conversation) {
+      conversation = await Conversation.create({
+        participants: [userId, recipientId],
+        requestedBy: userId,
+        status: isConnected ? "ACCEPTED" : "PENDING",
+        lastMessageAt: new Date(),
+      });
+    }
 
     // If no content is provided, we just want to initialize the conversation
-    if (!content?.trim()) {
+    if (!content || typeof content !== 'string' || content.trim() === '') {
       return NextResponse.json({
         conversationId: conversation._id.toString(),
       }, { status: 200 });
