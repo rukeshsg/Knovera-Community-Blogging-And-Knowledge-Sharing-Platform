@@ -35,6 +35,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Defensive: ensure array fields exist (in case of legacy/seeded users)
+    currentUser.following = currentUser.following ?? [];
+    currentUser.followers = currentUser.followers ?? [];
+    currentUser.followRequestsSent = currentUser.followRequestsSent ?? [];
+    currentUser.followRequestsReceived = currentUser.followRequestsReceived ?? [];
+    targetUser.following = targetUser.following ?? [];
+    targetUser.followers = targetUser.followers ?? [];
+    targetUser.followRequestsSent = targetUser.followRequestsSent ?? [];
+    targetUser.followRequestsReceived = targetUser.followRequestsReceived ?? [];
+
     const isFollowing = currentUser.following.some((id: any) => id.toString() === targetId);
     const hasRequested = currentUser.followRequestsSent.some((id: any) => id.toString() === targetId);
 
