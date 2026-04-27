@@ -1,8 +1,3 @@
-<p align="center">
-  <a href="https://knovera-community-blogging-and-knowledge-sharing-lnxfl7k3a.vercel.app/login" target="_blank">
-    <img src="https://img.shields.io/badge/🚀_Live_Demo-Try_Knovera-1f2937?style=for-the-badge&logo=vercel&logoColor=white" />
-  </a>
-</p>
 <div align="center">
   <video src="./assets/videos/knovera.mp4" width="100%" autoplay muted loop></video>
 </div>
@@ -37,6 +32,12 @@
   <img src="https://img.shields.io/badge/MongoDB-Atlas-92400E?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB" />
   <img src="https://img.shields.io/badge/NextAuth-Secure-92400E?style=flat-square&logo=nextauth.js&logoColor=white" alt="NextAuth" />
 </div>
+
+<p align="center">
+  <a href="https://knovera-community-blogging-and-knowledge-sharing-lnxfl7k3a.vercel.app/login" target="_blank">
+    <img src="https://img.shields.io/badge/🚀_Live_Demo-Try_Knovera-1f2937?style=for-the-badge&logo=vercel&logoColor=white" />
+  </a>
+</p>
 
 ---
 
