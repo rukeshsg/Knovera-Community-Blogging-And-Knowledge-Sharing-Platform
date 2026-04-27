@@ -33,6 +33,13 @@
 
 ---
 
+<div align="center">
+  <a href="./assets/videos/knovera.mp4">
+    <img src="./assets/images/landing-page-dark.png" width="900" alt="Knovera Preview"
+    style="border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.25);" />
+  </a>
+</div>
+
 ## 🌟 Overview
 
 **Knovera** is a premium, feature-rich blogging and community platform designed for the next generation of thinkers and writers. Built with a "quality-first" mindset, it combines modern engineering with a warm, minimalist aesthetic to provide a distraction-free environment for knowledge sharing.
