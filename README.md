@@ -44,7 +44,7 @@
     Explore the community blogging platform in action and see how ideas connect and grow.
   </p>
 
-  <a href="https://knovera-community-blogging-and-knowledge-sharing-lnxfl7k3a.vercel.app/login" target="_blank">
+  <a href="https://knovera-community-blogging-and-knowledge-sharing-lnxfl7k3a.vercel.app" target="_blank">
     <img 
       src="https://img.shields.io/badge/🚀_Live_Demo-Try_Knovera-f97316?style=for-the-badge&logo=vercel&logoColor=white"
       alt="Live Demo"
