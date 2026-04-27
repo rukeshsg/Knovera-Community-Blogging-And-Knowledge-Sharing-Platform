@@ -21,9 +21,6 @@
   <a href="https://github.com/rukeshsg">
     <img src="https://img.shields.io/badge/Maintained-Yes-92400E?style=for-the-badge" alt="Maintained" />
   </a>
-  <a href="https://knovera-community-blogging-and-knowledge-sharing-lnxfl7k3a.vercel.app">
-    <img src="https://img.shields.io/badge/Live-Demo-C2410C?style=for-the-badge&logo=vercel" alt="Live Demo" />
-  </a>
   <img src="https://img.shields.io/badge/License-Proprietary-92400E?style=for-the-badge" alt="License" />
 </div>
 
