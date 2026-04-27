@@ -94,7 +94,8 @@ export default function MessagesClient() {
         });
         
         if (!res.ok) {
-          console.error("Failed to initialize chat");
+          const errText = await res.text();
+          console.error("Failed to initialize chat", res.status, errText);
           return;
         }
 

@@ -28,8 +28,18 @@ export async function GET(req: Request) {
 
     const regex = new RegExp(query, "i");
 
+    // Search for Users
+    const users = await User.find({
+      $or: [
+        { name: regex },
+        { email: regex }
+      ]
+    })
+      .select("_id name email image profile")
+      .limit(5)
+      .lean() as any[];
+
     // We fetch up to 15 recent matches, then sort them in JS for title prioritization
-    // as MongoDB regex doesn't natively produce a text-score without a text index.
     const posts = await Post.find({
       isPublished: true,
       $or: [
@@ -40,13 +50,18 @@ export async function GET(req: Request) {
       .select("_id title coverImage slug createdAt author views")
       .populate("author", "name image")
       .sort({ createdAt: -1 })
-      .limit(15)
+      .limit(10)
       .lean() as any[];
 
-    // Scoring: 
-    // Title match: +10 points
-    // Exact word boundary title match: +20 points
-    // Fallback: mostly relies on recent creation date from initial sort
+    // Normalize Users
+    const scoredUsers = users.map(u => {
+      let score = 5; // Base score for users
+      if (u.name && u.name.toLowerCase().includes(query.toLowerCase())) score += 15;
+      if (u.name && new RegExp(`\\b${query}\\b`, 'i').test(u.name)) score += 25;
+      return { ...u, type: 'user', _score: score };
+    });
+
+    // Normalize Posts
     const scoredPosts = posts.map(post => {
       let score = 0;
       if (post.title) {
@@ -57,17 +72,18 @@ export async function GET(req: Request) {
           score += 20;
         }
       }
-      return { ...post, _score: score };
+      return { ...post, type: 'post', _score: score };
     });
 
-    // Sort by score descending, then fallback to original order
-    scoredPosts.sort((a, b) => b._score - a._score);
+    // Combine and Sort by score descending, then fallback to original order
+    const combined = [...scoredUsers, ...scoredPosts];
+    combined.sort((a, b) => b._score - a._score);
 
-    // Take top 5
-    const topResults = scoredPosts.slice(0, 5).map(post => {
+    // Take top 6 total
+    const topResults = combined.slice(0, 6).map(item => {
       // Remove score before sending
-      const { _score, ...cleanPost } = post;
-      return cleanPost;
+      const { _score, ...cleanItem } = item;
+      return cleanItem;
     });
 
     // We can run a quick count query if we want to show "See all X results"

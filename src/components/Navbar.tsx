@@ -196,7 +196,12 @@ export default function Navbar() {
                       } else if (e.key === "Enter") {
                         e.preventDefault();
                         if (selectedIndex >= 0 && searchResults[selectedIndex]) {
-                          window.location.href = `/post/${searchResults[selectedIndex].slug}`;
+                          const item = searchResults[selectedIndex];
+                          if (item.type === 'user') {
+                            window.location.href = `/profile/${item._id}`;
+                          } else {
+                            window.location.href = `/post/${item.slug}`;
+                          }
                         } else if (searchQuery.trim()) {
                           window.location.href = `/explore?q=${encodeURIComponent(searchQuery.trim())}`;
                         }
@@ -237,36 +242,65 @@ export default function Navbar() {
                             Top results for &quot;{searchQuery}&quot;
                           </h3>
                           <div className="space-y-1" role="listbox">
-                            {searchResults.map((post, idx) => (
-                              <Link 
-                                key={post._id} 
-                                href={`/post/${post.slug}`}
-                                className={`flex gap-4 items-start p-3 rounded-xl hover:bg-[var(--color-bg-soft)] transition-colors ${selectedIndex === idx ? 'bg-[var(--color-bg-soft)] ring-2 ring-[var(--color-primary)]/20' : ''}`}
-                                role="option"
-                                aria-selected={selectedIndex === idx}
-                                onClick={() => setShowSearch(false)}
-                              >
-                                {post.coverImage ? (
-                                  <div className="relative w-20 h-14 shrink-0 rounded-lg overflow-hidden bg-[var(--color-bg-secondary)]">
-                                    <Image src={post.coverImage} alt={post.title} fill className="object-cover" />
+                            {searchResults.map((item, idx) => {
+                              const isUser = item.type === 'user';
+                              return (
+                                <Link 
+                                  key={item._id} 
+                                  href={isUser ? `/profile/${item._id}` : `/post/${item.slug}`}
+                                  className={`flex gap-4 items-start p-3 rounded-xl hover:bg-[var(--color-bg-soft)] transition-colors ${selectedIndex === idx ? 'bg-[var(--color-bg-soft)] ring-2 ring-[var(--color-primary)]/20' : ''}`}
+                                  role="option"
+                                  aria-selected={selectedIndex === idx}
+                                  onClick={() => setShowSearch(false)}
+                                >
+                                  {isUser ? (
+                                    <div className="relative w-12 h-12 shrink-0 rounded-full overflow-hidden bg-[var(--color-bg-secondary)] ring-2 ring-[var(--color-bg-secondary)] mt-0.5">
+                                      {item.image ? (
+                                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-[var(--color-primary)] font-bold text-lg">
+                                          {item.name?.charAt(0) || "?"}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    item.coverImage ? (
+                                      <div className="relative w-20 h-14 shrink-0 rounded-lg overflow-hidden bg-[var(--color-bg-secondary)]">
+                                        <Image src={item.coverImage} alt={item.title} fill className="object-cover" />
+                                      </div>
+                                    ) : (
+                                      <div className="w-20 h-14 shrink-0 rounded-lg bg-[var(--color-bg-secondary)] flex items-center justify-center">
+                                        <MessageSquare className="w-5 h-5 text-[var(--color-text-muted)]" />
+                                      </div>
+                                    )
+                                  )}
+                                  
+                                  <div className="flex-1 min-w-0 flex flex-col justify-center min-h-[3rem]">
+                                    {isUser ? (
+                                      <>
+                                        <h4 className="text-base font-bold text-[var(--color-text-primary)] truncate">
+                                          {highlightMatch(item.name, searchQuery)}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mt-0.5 text-xs text-[var(--color-text-secondary)]">
+                                          <span className="truncate">{item.profile?.bio || item.email || "Knovera Member"}</span>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <h4 className="text-base font-bold text-[var(--color-text-primary)] truncate">
+                                          {highlightMatch(item.title, searchQuery)}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mt-1 text-xs text-[var(--color-text-secondary)]">
+                                          <span className="font-medium truncate">{item.author?.name}</span>
+                                          <span>•</span>
+                                          <span className="flex items-center gap-1 shrink-0"><Calendar className="w-3 h-3" /> {new Date(item.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                      </>
+                                    )}
                                   </div>
-                                ) : (
-                                  <div className="w-20 h-14 shrink-0 rounded-lg bg-[var(--color-bg-secondary)] flex items-center justify-center">
-                                    <MessageSquare className="w-5 h-5 text-[var(--color-text-muted)]" />
-                                  </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="text-base font-bold text-[var(--color-text-primary)] truncate">
-                                    {highlightMatch(post.title, searchQuery)}
-                                  </h4>
-                                  <div className="flex items-center gap-2 mt-1 text-xs text-[var(--color-text-secondary)]">
-                                    <span className="font-medium truncate">{post.author?.name}</span>
-                                    <span>•</span>
-                                    <span className="flex items-center gap-1 shrink-0"><Calendar className="w-3 h-3" /> {new Date(post.createdAt).toLocaleDateString()}</span>
-                                  </div>
-                                </div>
-                              </Link>
-                            ))}
+                                </Link>
+                              );
+                            })}
                           </div>
                           <Link
                             href={`/explore?q=${encodeURIComponent(searchQuery.trim())}`}
@@ -368,10 +402,8 @@ export default function Navbar() {
                       <p className="text-xs text-[var(--color-text-secondary)] truncate">{session.user?.email}</p>
                     </div>
                     {[
-                      { href: "/profile", icon: <User className="w-4 h-4" />, label: "My Profile" },
                       { href: "/settings", icon: <Settings className="w-4 h-4" />, label: "Settings" },
                       { href: "/bookmarks", icon: <Bookmark className="w-4 h-4" />, label: "Bookmarks" },
-                      { href: "/messages", icon: <MessageSquare className="w-4 h-4" />, label: "Messages" },
                     ].map(({ href, icon, label }) => (
                       <Link
                         key={href}
