@@ -33,6 +33,42 @@
 
 ---
 
+<div align="center">
+
+  <!-- Title -->
+  <h1>Knovera Platform</h1>
+
+  <!-- Subtitle -->
+  <p>
+    <strong>Interactive Product Preview</strong>
+  </p>
+
+  <!-- Description -->
+  <p>
+    Experience the platform in action. Click the preview below to watch the full demo video.
+  </p>
+
+  <!-- Preview Image -->
+  <a href="https://youtu.be/dAfPCiXs9QU" target="_blank">
+    <img 
+      src="./assets/images/landing-page-dark.png" 
+      width="900" 
+      alt="Knovera Platform Demo Preview"
+      style="
+        border-radius:16px; 
+        box-shadow:0 12px 30px rgba(0,0,0,0.25); 
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      "
+    />
+  </a>
+
+  <!-- Optional Caption -->
+  <p>
+    <sub>▶ Click the preview to watch the full demo on YouTube</sub>
+  </p>
+
+</div>
+
 ## 🌟 Overview
 
 **Knovera** is a premium, feature-rich blogging and community platform designed for the next generation of thinkers and writers. Built with a "quality-first" mindset, it combines modern engineering with a warm, minimalist aesthetic to provide a distraction-free environment for knowledge sharing.
@@ -92,16 +128,16 @@ Whether you are a professional creator or a casual reader, Knovera offers a poli
 <div align="center">
   <table>
     <tr>
-      <td><img src="./assets/images/write-ai-dark.png" width="400" alt="AI Editor" /><br /><sub><b>AI-Assisted Editor</b></sub></td>
-      <td><img src="./assets/images/explore-light.png" width="400" alt="Explore Page" /><br /><sub><b>Discovery Interface</b></sub></td>
+      <td><img src="./assets/images/explore-dark.png" width="400" alt="Explore Page" /><br /><sub><b>Discovery Interface</b></sub></td>
+      <td><img src="./assets/images/write-ai-light.png" width="400" alt="AI Editor" /><br /><sub><b>AI-Assisted Editor</b></sub></td>
     </tr>
     <tr>
       <td><img src="./assets/images/login-page-light.png" width="400" alt="Auth Page" /><br /><sub><b>Secure Authentication</b></sub></td>
       <td><img src="./assets/images/search-dark.png" width="400" alt="Search" /><br /><sub><b>Smart Search</b></sub></td>
     </tr>
     <tr>
-      <td><img src="./assets/images/message-light.png" width="400" alt="Messaging" /><br /><sub><b>Secure Messaging</b></sub></td>
-      <td><img src="./assets/images/settings-bookmark-dark.png" width="400" alt="Settings" /><br /><sub><b>Personalized Settings</b></sub></td>
+      <td><img src="./assets/images/settings-bookmark-dark.png" width="400" alt="Messaging" /><br /><sub><b>Personalized Settings</b></sub></td>
+      <td><img src="./assets/images/message-light.png" width="400" alt="Settings" /><br /><sub><b>Secure Messaging</b></sub></td>
     </tr>
   </table>
 </div>
@@ -208,6 +244,7 @@ The UI/UX, branding, and design system are strictly protected.
   <a href="https://github.com/rukeshsg">
     <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
   </a>
+  &nbsp;&nbsp;
   <a href="https://www.linkedin.com/in/rukesh-s-g-6531bb3b7/">
     <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
   </a>
