@@ -12,8 +12,15 @@ interface Reply { _id: string; author: Author; content: string; createdAt: strin
 interface Comment { _id: string; author: Author; content: string; createdAt: string; likes: string[]; isDeleted: boolean; replies: Reply[]; }
 
 function Avatar({ user }: { user: Author }) {
-  return user.image ? (
-    <img src={user.image} alt={user.name} className="w-10 h-10 rounded-2xl object-cover flex-shrink-0 shadow-sm" />
+  const [error, setError] = useState(false);
+
+  return user.image && !error ? (
+    <img 
+      src={user.image} 
+      alt={user.name} 
+      className="w-10 h-10 rounded-2xl object-cover flex-shrink-0 shadow-sm" 
+      onError={() => setError(true)}
+    />
   ) : (
     <div className="w-10 h-10 rounded-2xl bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)] font-black text-sm flex-shrink-0">
       {user.name.charAt(0).toUpperCase()}

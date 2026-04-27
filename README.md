@@ -1,23 +1,34 @@
-# <div align="center">✨ Knovera — Community Blogging & Knowledge Sharing Platform</div>
-
 <div align="center">
-  <strong>Where Ideas Connect and Grow.</strong>
+  <video src="./assets/videos/knovera.mp4" width="100%" autoplay muted loop></video>
 </div>
 
 <br />
 
 <div align="center">
-  <img src="./assets/images/landing-page-dark.png" alt="Knovera Hero" width="800" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);" />
+  <img src="./assets/knovera-logo.png" alt="Knovera Logo" width="280" />
 </div>
 
-<br />
+<div align="center">
+  <h3>Where Ideas Connect and Grow.</h3>
+</div>
 
 <div align="center">
-  <img src="https://img.shields.io/badge/Next.js-16%20(Canary)-92400E?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
-  <img src="https://img.shields.io/badge/React-19-92400E?style=for-the-badge&logo=react&logoColor=white" alt="React" />
-  <img src="https://img.shields.io/badge/Tailwind-4.0-92400E?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/MongoDB-Atlas-92400E?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
-  <img src="https://img.shields.io/badge/Authentication-NextAuth-92400E?style=for-the-badge&logo=nextauth.js&logoColor=white" alt="NextAuth" />
+  <a href="https://github.com/rukeshsg/Knovera-Community-Blogging-And-Knowledge-Sharing-Platform">
+    <img src="https://img.shields.io/badge/Repository-Knovera-92400E?style=for-the-badge&logo=github" alt="Repository" />
+  </a>
+  <a href="https://github.com/rukeshsg">
+    <img src="https://img.shields.io/badge/Maintained-Yes-92400E?style=for-the-badge" alt="Maintained" />
+  </a>
+  <img src="https://img.shields.io/badge/Status-Production--Ready-C2410C?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/License-Proprietary-92400E?style=for-the-badge" alt="License" />
+</div>
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Next.js-16%20(Canary)-92400E?style=flat-square&logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-19-92400E?style=flat-square&logo=react&logoColor=white" alt="React" />
+  <img src="https://img.shields.io/badge/Tailwind-4.0-92400E?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/MongoDB-Atlas-92400E?style=flat-square&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/NextAuth-Secure-92400E?style=flat-square&logo=nextauth.js&logoColor=white" alt="NextAuth" />
 </div>
 
 ---
@@ -85,6 +96,10 @@ Whether you are a professional creator or a casual reader, Knovera offers a poli
       <td><img src="./assets/images/explore-light.png" width="400" alt="Explore Page" /><br /><sub><b>Discovery Interface</b></sub></td>
     </tr>
     <tr>
+      <td><img src="./assets/images/login-page-light.png" width="400" alt="Auth Page" /><br /><sub><b>Secure Authentication</b></sub></td>
+      <td><img src="./assets/images/search-dark.png" width="400" alt="Search" /><br /><sub><b>Smart Search</b></sub></td>
+    </tr>
+    <tr>
       <td><img src="./assets/images/message-light.png" width="400" alt="Messaging" /><br /><sub><b>Secure Messaging</b></sub></td>
       <td><img src="./assets/images/settings-bookmark-dark.png" width="400" alt="Settings" /><br /><sub><b>Personalized Settings</b></sub></td>
     </tr>
@@ -130,7 +145,7 @@ public/
 ### Local Development
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/knovera.git
+   git clone https://github.com/rukeshsg/Knovera-Community-Blogging-And-Knowledge-Sharing-Platform.git
    cd knovera
    ```
 
@@ -180,11 +195,20 @@ public/
 
 ## 📄 License
 
-This project is the property of the Knovera Team. All rights reserved. 
+This project is proprietary and protected.
+
+You may view and learn from the code, but you are not allowed to copy, modify, or use it commercially.
+The UI/UX, branding, and design system are strictly protected.
 
 ---
 
 <div align="center">
-  <strong>Built with ❤️ by Rukesh SG</strong><br />
-  <a href="https://github.com/rukeshsg">GitHub</a> • <a href="mailto:rukesh@example.com">Email</a>
+  <h3>Built with ❤️ by Rukesh SG</h3>
+  <br />
+  <a href="https://github.com/rukeshsg">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+  </a>
+  <a href="https://www.linkedin.com/in/rukesh-s-g-6531bb3b7/">
+    <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+  </a>
 </div>

@@ -195,7 +195,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
                 {allTags.length > 0 ? allTags.map((t) => (
                   <Link
                     key={t}
-                    href={`/explore?tag=${t}`}
+                    href={`/explore?tag=${encodeURIComponent(t)}`}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                       tag === t
                         ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20"
