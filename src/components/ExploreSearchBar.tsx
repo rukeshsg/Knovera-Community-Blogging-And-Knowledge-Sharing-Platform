@@ -13,25 +13,20 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
   const [isFocused, setIsFocused] = useState(false);
   const searchAbortController = useRef<AbortController | null>(null);
 
-  // Live search debounce
   useEffect(() => {
     const trimmed = searchQuery.trim();
     if (!trimmed) {
       setSearchResults([]);
       setSearchError("");
       setSelectedIndex(-1);
-      if (searchAbortController.current) {
-        searchAbortController.current.abort();
-      }
+      if (searchAbortController.current) searchAbortController.current.abort();
       return;
     }
 
     setIsSearching(true);
     setSearchError("");
 
-    if (searchAbortController.current) {
-      searchAbortController.current.abort();
-    }
+    if (searchAbortController.current) searchAbortController.current.abort();
     const abortController = new AbortController();
     searchAbortController.current = abortController;
 
@@ -42,8 +37,8 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
         });
         if (!res.ok) throw new Error("Search failed");
         const data = await res.json();
-        // Explore page only shows posts — filter out user results
-        setSearchResults((data.results || []).filter((r: any) => r.type !== 'user'));
+        // Show both users and posts in the dropdown
+        setSearchResults(data.results || []);
         setSelectedIndex(-1);
       } catch (err: any) {
         if (err.name !== "AbortError") {
@@ -63,9 +58,9 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
     if (!text) return text;
     if (!query) return text;
     const parts = text.split(new RegExp(`(${query})`, "gi"));
-    return parts.map((part, i) => 
-      part.toLowerCase() === query.toLowerCase() 
-        ? <span key={i} className="bg-[var(--color-primary)]/20 text-[var(--color-primary)] font-bold px-0.5 rounded">{part}</span> 
+    return parts.map((part, i) =>
+      part.toLowerCase() === query.toLowerCase()
+        ? <span key={i} className="bg-[var(--color-primary)]/20 text-[var(--color-primary)] font-bold px-0.5 rounded">{part}</span>
         : part
     );
   };
@@ -81,7 +76,7 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
       if (selectedIndex >= 0 && searchResults[selectedIndex]) {
         e.preventDefault();
         const item = searchResults[selectedIndex];
-        window.location.href = item.type === 'user' ? `/profile/${item._id}` : `/post/${item.slug}`;
+        window.location.href = item.type === "user" ? `/profile/${item._id}` : `/post/${item.slug}`;
       }
     } else if (e.key === "Escape") {
       setIsFocused(false);
@@ -98,17 +93,15 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
         onChange={(e) => setSearchQuery(e.target.value)}
         onKeyDown={handleKeyDown}
         onFocus={() => setIsFocused(true)}
-        onBlur={(e) => {
-          // Delay hiding dropdown so clicks can register
+        onBlur={() => {
           setTimeout(() => setIsFocused(false), 200);
         }}
         autoComplete="off"
-        placeholder="Search stories, topics, or keywords..."
+        placeholder="Search stories, people, or keywords..."
         className="w-full pl-12 pr-4 py-4 border border-[var(--color-bg-secondary)] bg-[var(--background)] rounded-2xl text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all shadow-sm text-lg"
       />
       {initialTag && <input type="hidden" name="tag" value={initialTag} />}
 
-      {/* Live Search Dropdown */}
       {isFocused && searchQuery.trim() && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--background)] border border-[var(--color-bg-secondary)] rounded-2xl shadow-2xl z-[100] max-h-[60vh] overflow-y-auto">
           <div className="py-2 px-2">
@@ -129,41 +122,73 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
             ) : searchResults.length > 0 ? (
               <div className="flex flex-col">
                 <div className="space-y-1" role="listbox">
-                  {searchResults.map((post, idx) => (
-                    <Link 
-                      key={post._id} 
-                      href={`/post/${post.slug}`}
-                      className={`flex gap-4 items-start p-3 rounded-xl hover:bg-[var(--color-bg-soft)] transition-colors ${selectedIndex === idx ? 'bg-[var(--color-bg-soft)] ring-2 ring-[var(--color-primary)]/20' : ''}`}
-                      role="option"
-                      aria-selected={selectedIndex === idx}
-                    >
-                      {post.coverImage ? (
-                        <div className="relative w-16 h-12 shrink-0 rounded-lg overflow-hidden bg-[var(--color-bg-secondary)]">
-                          <Image src={post.coverImage} alt={post.title} fill className="object-cover" />
+                  {searchResults.map((item, idx) => {
+                    const isUser = item.type === "user";
+                    return (
+                      <Link
+                        key={item._id}
+                        href={isUser ? `/profile/${item._id}` : `/post/${item.slug}`}
+                        className={`flex gap-3 items-center p-3 rounded-xl hover:bg-[var(--color-bg-soft)] transition-colors ${selectedIndex === idx ? "bg-[var(--color-bg-soft)] ring-2 ring-[var(--color-primary)]/20" : ""}`}
+                        role="option"
+                        aria-selected={selectedIndex === idx}
+                      >
+                        {isUser ? (
+                          <div className="relative w-10 h-10 shrink-0 rounded-full overflow-hidden bg-[var(--color-bg-secondary)] ring-2 ring-[var(--color-bg-secondary)]">
+                            {item.image ? (
+                              <Image src={item.image} alt={item.name} fill className="object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-[var(--color-primary)] font-bold text-base">
+                                {item.name?.charAt(0) || "?"}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          item.coverImage ? (
+                            <div className="relative w-16 h-12 shrink-0 rounded-lg overflow-hidden bg-[var(--color-bg-secondary)]">
+                              <Image src={item.coverImage} alt={item.title} fill className="object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-16 h-12 shrink-0 rounded-lg bg-[var(--color-bg-secondary)] flex items-center justify-center">
+                              <MessageSquare className="w-4 h-4 text-[var(--color-text-muted)]" />
+                            </div>
+                          )
+                        )}
+
+                        <div className="flex-1 min-w-0">
+                          {isUser ? (
+                            <>
+                              <h4 className="text-sm font-bold text-[var(--color-text-primary)] truncate">
+                                {highlightMatch(item.name, searchQuery)}
+                              </h4>
+                              <p className="text-xs text-[var(--color-text-secondary)] truncate mt-0.5">
+                                {item.profile?.bio || item.email || "Knovera Member"}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <h4 className="text-sm font-bold text-[var(--color-text-primary)] truncate">
+                                {highlightMatch(item.title, searchQuery)}
+                              </h4>
+                              <div className="flex items-center gap-2 mt-1 text-xs text-[var(--color-text-secondary)]">
+                                <span className="font-medium truncate">{item.author?.name}</span>
+                                <span>•</span>
+                                <span className="flex items-center gap-1 shrink-0">
+                                  <Calendar className="w-3 h-3" />
+                                  {new Date(item.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </>
+                          )}
                         </div>
-                      ) : (
-                        <div className="w-16 h-12 shrink-0 rounded-lg bg-[var(--color-bg-secondary)] flex items-center justify-center">
-                          <MessageSquare className="w-4 h-4 text-[var(--color-text-muted)]" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold text-[var(--color-text-primary)] truncate">
-                          {highlightMatch(post.title, searchQuery)}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-[var(--color-text-secondary)]">
-                          <span className="font-medium truncate">{post.author?.name}</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1 shrink-0"><Calendar className="w-3 h-3" /> {new Date(post.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+                      </Link>
+                    );
+                  })}
                 </div>
                 <button
                   type="submit"
                   className="mt-2 mx-2 p-2 text-center text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-colors border border-[var(--color-primary)]/20"
                 >
-                  See all results for "{searchQuery}"
+                  See all stories for &quot;{searchQuery}&quot;
                 </button>
               </div>
             ) : (
