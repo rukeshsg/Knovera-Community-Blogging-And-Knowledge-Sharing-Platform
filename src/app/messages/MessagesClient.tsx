@@ -107,7 +107,7 @@ export default function MessagesClient() {
             const d2 = await convRes.json();
             setConversations(d2.conversations ?? []);
           }
-          router.replace("/messages");
+          window.history.replaceState(null, "", "/messages");
         }
       } catch (err) {
         console.error("Chat init error:", err);
@@ -250,10 +250,9 @@ export default function MessagesClient() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-0 sm:px-4 py-0 sm:py-8">
-      <div className="flex h-[calc(100vh-64px)] sm:h-[75vh] bg-[var(--background)] sm:border border-[var(--color-bg-secondary)] sm:rounded-2xl overflow-hidden shadow-xl shadow-[var(--color-bg-secondary)]/50">
+    <div className="w-full h-[calc(100vh-64px)] flex bg-[var(--background)] border-t border-[var(--color-bg-secondary)] overflow-hidden">
 
-        {/* ── Sidebar: Conversations ── */}
+      {/* ── Sidebar: Conversations ── */}
         <div className={`${activeId ? "hidden sm:flex" : "flex"} w-full sm:w-80 flex-col border-r border-[var(--color-bg-secondary)] bg-[var(--color-bg-soft)]/20`}>
           <div className="p-4 border-b border-[var(--color-bg-secondary)]">
             <h2 className="font-heading font-black text-2xl text-[var(--color-text-primary)] mb-4">Messages</h2>
@@ -346,7 +345,7 @@ export default function MessagesClient() {
                         </p>
                         {activeConvo.status === "PENDING" && (
                            <p className="text-[10px] text-[var(--color-text-secondary)] font-bold uppercase tracking-wider">
-                             Pending Request
+                             {activeConvo.requestedBy === currentUserId ? "Message Request Sent" : "Message Request Received"}
                            </p>
                         )}
                       </div>
@@ -387,7 +386,7 @@ export default function MessagesClient() {
 
               {/* Guarded Input Area */}
               <div className="p-4 border-t border-[var(--color-bg-secondary)] bg-[var(--background)]">
-                {activeConvo?.status === "PENDING" && messages.length > 0 ? (
+                {activeConvo?.status === "PENDING" && (activeConvo.requestedBy !== currentUserId || messages.length >= 5) ? (
                   activeConvo.requestedBy === currentUserId ? (
                     <div className="bg-[var(--color-bg-soft)] border border-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] text-sm font-semibold rounded-2xl p-4 text-center">
                       Waiting for {activeConvo.other.name} to accept your request.
@@ -438,7 +437,6 @@ export default function MessagesClient() {
             </>
           )}
         </div>
-      </div>
     </div>
   );
 }

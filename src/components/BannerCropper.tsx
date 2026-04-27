@@ -98,15 +98,15 @@ export default function BannerCropper({ imageSrc, onCrop, onCancel }: BannerCrop
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 sm:p-6 animate-fade-in">
-      <div className="bg-[var(--color-bg-primary)] w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-[var(--color-bg-secondary)]">
+      <div className="bg-[var(--background)] w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-[var(--color-bg-secondary)]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[var(--color-bg-secondary)] flex justify-between items-center bg-[var(--color-bg-primary)]">
-          <h3 className="text-xl font-bold text-[var(--color-text)]">Reposition Cover Photo</h3>
+        <div className="px-6 py-4 border-b border-[var(--color-bg-secondary)] flex justify-between items-center bg-[var(--background)]">
+          <h3 className="text-xl font-bold text-[var(--color-text-primary)]">Reposition Cover Photo</h3>
           <button
             onClick={onCancel}
             className="p-2 hover:bg-[var(--color-bg-secondary)] rounded-full transition-colors"
           >
-            <X className="w-5 h-5 text-[var(--color-text-muted)]" />
+            <X className="w-5 h-5 text-[var(--color-text-secondary)]" />
           </button>
         </div>
 
@@ -132,26 +132,26 @@ export default function BannerCropper({ imageSrc, onCrop, onCancel }: BannerCrop
         </div>
 
         {/* Controls */}
-        <div className="p-6 bg-[var(--color-bg-primary)] border-t border-[var(--color-bg-secondary)]">
+        <div className="p-6 bg-[var(--background)] border-t border-[var(--color-bg-secondary)]">
           <div className="flex flex-col sm:flex-row items-center gap-6 max-w-2xl mx-auto">
             <div className="flex items-center gap-3 w-full">
-              <ZoomOut className="w-5 h-5 text-[var(--color-text-muted)] shrink-0" />
+              <ZoomOut className="w-5 h-5 text-[var(--color-text-secondary)] shrink-0" />
               <input
                 type="range"
-                min="1"
+                min="0.1"
                 max="3"
                 step="0.05"
                 value={scale}
                 onChange={(e) => setScale(parseFloat(e.target.value))}
                 className="w-full h-2 bg-[var(--color-bg-secondary)] rounded-lg appearance-none cursor-pointer accent-[var(--color-primary)]"
               />
-              <ZoomIn className="w-5 h-5 text-[var(--color-text-muted)] shrink-0" />
+              <ZoomIn className="w-5 h-5 text-[var(--color-text-secondary)] shrink-0" />
             </div>
 
             <div className="flex w-full sm:w-auto gap-3 justify-end">
               <button
                 onClick={() => setRotation((r) => r + 90)}
-                className="flex-1 sm:flex-none p-3 flex items-center justify-center gap-2 rounded-xl bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-hover)] text-[var(--color-text)] transition-colors font-medium"
+                className="flex-1 sm:flex-none p-3 flex items-center justify-center gap-2 rounded-xl bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-soft)] text-[var(--color-text-primary)] transition-colors font-medium"
                 title="Rotate 90°"
               >
                 <RotateCw className="w-5 h-5" />

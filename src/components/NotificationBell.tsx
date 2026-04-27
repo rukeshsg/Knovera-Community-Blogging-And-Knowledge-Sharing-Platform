@@ -74,21 +74,33 @@ export default function NotificationBell() {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   };
 
+  const markAsRead = async (id: string) => {
+    setOpen(false);
+    await fetch("/api/notifications", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [id] }) });
+    setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)));
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+  };
+
   if (!session) return null;
 
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={handleOpen}
-        className="relative p-2 hover:text-[var(--color-text-primary)] transition-colors"
+        className="group flex items-center w-10 h-10 hover:w-[130px] rounded-full hover:bg-[var(--color-bg-soft)] transition-all duration-300 ease-in-out overflow-hidden text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
         aria-label="Notifications"
       >
-        <Bell className="h-5 w-5" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[var(--color-primary)] text-white text-[10px] font-black rounded-full flex items-center justify-center">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
+        <div className="relative flex items-center justify-center shrink-0 w-10 h-10">
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-[var(--color-primary)] text-white text-[9px] font-black rounded-full flex items-center justify-center ring-2 ring-[var(--background)]">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </div>
+        <span className="opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm font-semibold transition-opacity duration-200 pr-4">
+          Notifications
+        </span>
       </button>
 
       {open && (
@@ -116,7 +128,10 @@ export default function NotificationBell() {
                   <Link
                     key={n._id}
                     href={n.type === "MESSAGE" ? `/messages?with=${n.sender._id ?? ""}` : (n.post ? `/post/${n.post.slug}` : `/profile/${n.sender._id ?? ""}`)}
-                    onClick={() => setOpen(false)}
+                    onClick={() => {
+                      if (!n.isRead) markAsRead(n._id);
+                      else setOpen(false);
+                    }}
                     className={`flex items-start gap-3 px-4 py-3 hover:bg-[var(--color-bg-soft)] transition-colors border-b border-[var(--color-bg-secondary)] last:border-0 ${!n.isRead ? "bg-[var(--color-primary)]/5" : ""}`}
                   >
                     {n.sender.image ? (

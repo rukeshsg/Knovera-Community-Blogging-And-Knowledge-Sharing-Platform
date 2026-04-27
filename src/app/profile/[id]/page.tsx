@@ -79,7 +79,7 @@ export default async function ProfilePage({ params, searchParams }: { params: Pr
         userId={id}
       />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 pb-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 pb-16 relative z-10">
         {/* Profile Card */}
         <div className="bg-[var(--background)] border border-[var(--color-bg-secondary)] rounded-2xl p-6 mb-8 shadow-lg">
           <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end">

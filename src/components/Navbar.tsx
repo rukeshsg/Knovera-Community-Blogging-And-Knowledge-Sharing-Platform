@@ -158,20 +158,12 @@ export default function Navbar() {
             <Link href="/" className="flex items-center">
               <div className="relative h-12 w-48 flex items-center">
                 <Image
-                  src="/assets/knovera-logo.png"
+                  src={isDarkMode ? "/assets/knovera-logo-for-dark-theme.png" : "/assets/knovera-logo-transparent.png"}
                   alt="Knovera Logo"
                   fill
                   priority
                   sizes="192px"
-                  className="dark:hidden object-contain object-left mix-blend-multiply"
-                />
-                <Image
-                  src="/assets/knovera-logo-dark.png"
-                  alt="Knovera Logo"
-                  fill
-                  priority
-                  sizes="192px"
-                  className="hidden dark:block object-contain object-left mix-blend-screen"
+                  className="object-contain object-left"
                 />
               </div>
             </Link>
@@ -298,19 +290,51 @@ export default function Navbar() {
             ) : (
               <button 
                 onClick={() => setShowSearch(true)}
-                className="p-2 hover:text-[var(--color-text-primary)] transition-all hover:scale-110" 
+                className="group flex items-center w-10 h-10 hover:w-[100px] rounded-full hover:bg-[var(--color-bg-soft)] transition-all duration-300 ease-in-out overflow-hidden text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]" 
                 aria-label="Search"
               >
-                <Search className="h-5 w-5" />
+                <div className="flex items-center justify-center w-10 h-10 shrink-0">
+                  <Search className="w-5 h-5" />
+                </div>
+                <span className="opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm font-semibold transition-opacity duration-200 pr-4">
+                  Search
+                </span>
               </button>
             )}
+            
+            {session && (
+              <>
+                <Link href="/messages" className="group flex items-center w-10 h-10 hover:w-[115px] rounded-full hover:bg-[var(--color-bg-soft)] transition-all duration-300 ease-in-out overflow-hidden text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]" aria-label="Messages">
+                  <div className="flex items-center justify-center w-10 h-10 shrink-0">
+                    <MessageSquare className="w-5 h-5" />
+                  </div>
+                  <span className="opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm font-semibold transition-opacity duration-200 pr-4">
+                    Messages
+                  </span>
+                </Link>
+                <Link href="/profile" className="group hidden sm:flex items-center w-10 h-10 hover:w-[100px] rounded-full hover:bg-[var(--color-bg-soft)] transition-all duration-300 ease-in-out overflow-hidden text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]" aria-label="Profile">
+                  <div className="flex items-center justify-center w-10 h-10 shrink-0">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <span className="opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm font-semibold transition-opacity duration-200 pr-4">
+                    Profile
+                  </span>
+                </Link>
+              </>
+            )}
+
             <NotificationBell />
             <button 
               onClick={toggleTheme}
-              className="p-2 hover:text-[var(--color-text-primary)] transition-colors" 
+              className="group flex items-center w-10 h-10 hover:w-[135px] rounded-full hover:bg-[var(--color-bg-soft)] transition-all duration-300 ease-in-out overflow-hidden text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]" 
               aria-label="Toggle Theme"
             >
-              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              <div className="flex items-center justify-center w-10 h-10 shrink-0">
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </div>
+              <span className="opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm font-semibold transition-opacity duration-200 pr-4">
+                {isDarkMode ? "Light Mode" : "Dark Mode"}
+              </span>
             </button>
 
             {session ? (

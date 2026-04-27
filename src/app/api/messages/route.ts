@@ -79,22 +79,25 @@ export async function POST(req: Request) {
       { new: true, upsert: true }
     );
 
-    if (conversation.status === "PENDING" && conversation.lastMessage) {
-      if (conversation.requestedBy.toString() !== userId) {
-        return NextResponse.json({ error: "You must accept the request first." }, { status: 403 });
-      }
-      return NextResponse.json({ error: "Wait for the user to accept your request." }, { status: 403 });
-    }
-
-    if (conversation.status === "REJECTED") {
-      return NextResponse.json({ error: "Cannot send message." }, { status: 403 });
-    }
-
     // If no content is provided, we just want to initialize the conversation
     if (!content?.trim()) {
       return NextResponse.json({
         conversationId: conversation._id.toString(),
       }, { status: 200 });
+    }
+
+    if (conversation.status === "PENDING") {
+      if (conversation.requestedBy.toString() !== userId) {
+        return NextResponse.json({ error: "You must accept the request first." }, { status: 403 });
+      }
+      const messageCount = await Message.countDocuments({ conversation: conversation._id });
+      if (messageCount >= 5) {
+        return NextResponse.json({ error: "Wait for the user to accept your request." }, { status: 403 });
+      }
+    }
+
+    if (conversation.status === "REJECTED") {
+      return NextResponse.json({ error: "Cannot send message." }, { status: 403 });
     }
 
     const message = await Message.create({
