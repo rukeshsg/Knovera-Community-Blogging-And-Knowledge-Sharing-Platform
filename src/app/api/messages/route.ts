@@ -22,12 +22,24 @@ export async function GET() {
       .populate("lastMessage", "content createdAt sender")
       .lean();
 
-    const result = conversations.map((c: any) => ({
+    const mapped = conversations.map((c: any) => ({
       ...c,
       _id: c._id.toString(),
       other: c.participants.find((p: any) => p._id.toString() !== session.user.id),
       requestedBy: c.requestedBy?.toString(),
     }));
+
+    // Deduplicate: keep only the most recent conversation per unique other user
+    const seen = new Map<string, any>();
+    for (const conv of mapped) {
+      const otherId = conv.other?._id?.toString();
+      if (!otherId) continue;
+      if (!seen.has(otherId)) {
+        seen.set(otherId, conv);
+      }
+      // The list is already sorted by lastMessageAt desc, so first one wins
+    }
+    const result = Array.from(seen.values());
 
     return NextResponse.json({ conversations: result });
   } catch (error) {

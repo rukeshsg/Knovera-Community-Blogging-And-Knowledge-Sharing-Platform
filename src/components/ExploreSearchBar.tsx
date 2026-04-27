@@ -42,7 +42,8 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
         });
         if (!res.ok) throw new Error("Search failed");
         const data = await res.json();
-        setSearchResults(data.results || []);
+        // Explore page only shows posts — filter out user results
+        setSearchResults((data.results || []).filter((r: any) => r.type !== 'user'));
         setSelectedIndex(-1);
       } catch (err: any) {
         if (err.name !== "AbortError") {
@@ -59,6 +60,7 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
   }, [searchQuery, initialQuery]);
 
   const highlightMatch = (text: string, query: string) => {
+    if (!text) return text;
     if (!query) return text;
     const parts = text.split(new RegExp(`(${query})`, "gi"));
     return parts.map((part, i) => 
@@ -78,7 +80,8 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
     } else if (e.key === "Enter") {
       if (selectedIndex >= 0 && searchResults[selectedIndex]) {
         e.preventDefault();
-        window.location.href = `/post/${searchResults[selectedIndex].slug}`;
+        const item = searchResults[selectedIndex];
+        window.location.href = item.type === 'user' ? `/profile/${item._id}` : `/post/${item.slug}`;
       }
     } else if (e.key === "Escape") {
       setIsFocused(false);
