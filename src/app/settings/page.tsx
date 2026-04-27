@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Loader2, Camera, Globe, AtSign, Save, ArrowLeft, Code } from "lucide-react";
 import Link from "next/link";
 import ImageCropper from "@/components/ImageCropper";
@@ -151,10 +150,25 @@ export default function SettingsPage() {
             <div className="relative group">
               <div className="w-32 h-32 rounded-[32px] overflow-hidden ring-4 ring-[var(--color-primary)]/10 shadow-xl bg-[var(--color-bg-soft)] flex items-center justify-center">
                 {formData.image ? (
-                  <Image src={formData.image} alt="Avatar" width={128} height={128} className="object-cover w-full h-full" />
-                ) : (
-                  <span className="text-5xl font-black text-[var(--color-primary)]">{formData.name.charAt(0)}</span>
-                )}
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={formData.image}
+                    src={formData.image}
+                    alt="Avatar"
+                    className="object-cover w-full h-full"
+                    onError={e => {
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <span
+                  className="text-5xl font-black text-[var(--color-primary)] items-center justify-center"
+                  style={{ display: formData.image ? 'none' : 'flex' }}
+                >
+                  {formData.name.charAt(0) || '?'}
+                </span>
               </div>
               <label className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 rounded-[32px] cursor-pointer transition-opacity backdrop-blur-sm">
                 <Camera className="w-8 h-8 mb-1" />
