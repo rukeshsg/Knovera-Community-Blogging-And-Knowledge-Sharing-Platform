@@ -115,7 +115,9 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
   const openMedia = (mode: 'image' | 'gif' | 'youtube') => setMediaModal(mode);
 
   const handleInsertImages = (urls: string[]) => {
-    urls.forEach(url => editor.chain().focus().setImage({ src: url }).run());
+    // Insert all images in a single chain so cursor isn't reset between each one
+    const html = urls.map(url => `<img src="${url}">`).join('<p></p>');
+    editor.chain().focus().insertContent(html).run();
   };
 
   const handleInsertUrl = (url: string, type: 'image' | 'gif' | 'youtube') => {
