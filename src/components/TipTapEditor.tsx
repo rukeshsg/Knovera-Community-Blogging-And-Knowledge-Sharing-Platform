@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -125,26 +125,63 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     }
   };
 
-  const handleAiAssist = async () => {
+  const aiMenuRef = useRef<HTMLDivElement>(null);
+  const [aiMenuOpen, setAiMenuOpen] = useState(false);
+
+  // Close AI menu on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (aiMenuRef.current && !aiMenuRef.current.contains(e.target as Node)) {
+        setAiMenuOpen(false);
+      }
+    };
+    if (aiMenuOpen) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [aiMenuOpen]);
+
+  const showToast = useCallback((message: string, type: 'info' | 'success' | 'error' = 'info') => {
+    const existing = document.getElementById('ai-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.id = 'ai-toast';
+    const colors = {
+      info: 'bg-[#7c3aed] text-white',
+      success: 'bg-green-600 text-white',
+      error: 'bg-red-600 text-white',
+    };
+    toast.className = `fixed bottom-5 right-5 z-[9999] flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-sm font-semibold transition-all duration-300 ${colors[type]}`;
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3500);
+  }, []);
+
+  const runAiAction = async (action: 'improve' | 'summarize' | 'grammar') => {
+    setAiMenuOpen(false);
+
     const selection = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(selection.from, selection.to, ' ');
-    
-    // If no text selected, try to get all text
     const textToProcess = selectedText || editor.getText();
+
     if (!textToProcess.trim()) {
-      alert("Please enter or select some text first.");
+      showToast('⚠️ Please enter or select some text first.', 'error');
       return;
     }
 
-    const action = window.prompt("AI Action (improve/summarize/grammar):", "improve");
-    if (!action || !["improve", "summarize", "grammar"].includes(action.toLowerCase())) return;
+    const labels: Record<string, string> = {
+      improve: '✨ Improving your writing...',
+      summarize: '📝 Summarizing...',
+      grammar: '🔍 Fixing grammar...',
+    };
 
     setIsAiProcessing(true);
+    showToast(labels[action], 'info');
+
     try {
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textToProcess, action: action.toLowerCase() })
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textToProcess, action }),
       });
       const data = await res.json();
       if (data.result) {
@@ -153,12 +190,18 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         } else {
           editor.chain().focus().setContent(data.result).run();
         }
+        const successLabels: Record<string, string> = {
+          improve: '✅ Writing improved!',
+          summarize: '✅ Summary ready!',
+          grammar: '✅ Grammar fixed!',
+        };
+        showToast(successLabels[action], 'success');
       } else {
-        alert("AI processing failed.");
+        showToast('❌ AI processing failed. Try again.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert("Error processing AI request.");
+      showToast('❌ Error connecting to AI. Try again.', 'error');
     } finally {
       setIsAiProcessing(false);
     }
@@ -213,12 +256,66 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 
       {/* Pro Features Group */}
       <div className="flex items-center gap-1 ml-auto">
-        <ToolbarButton 
-          icon={isAiProcessing ? <span className="animate-pulse">...</span> : <Sparkles size={18} className="text-[#a855f7]" />} 
-          label="AI Assist (Improve/Summarize)" 
-          onClick={handleAiAssist} 
-          disabled={isAiProcessing} 
-        />
+        {/* AI Assist floating popover */}
+        <div className="relative" ref={aiMenuRef}>
+          <button
+            type="button"
+            onClick={() => setAiMenuOpen(prev => !prev)}
+            disabled={isAiProcessing}
+            aria-label="AI Assist"
+            className={`relative p-2 rounded-lg transition-colors flex items-center justify-center ${
+              aiMenuOpen
+                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
+                : 'text-[#a855f7] hover:bg-purple-50 dark:hover:bg-purple-900/20'
+            } ${isAiProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isAiProcessing
+              ? <span className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+              : <Sparkles size={18} />}
+          </button>
+
+          {/* Tooltip (only when menu closed) */}
+          {!aiMenuOpen && (
+            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 delay-150 z-50">
+              <div className="bg-black text-white text-xs font-medium px-2.5 py-1.5 rounded-md whitespace-nowrap shadow-xl">
+                AI Assist
+              </div>
+            </div>
+          )}
+
+          {/* Floating Action Menu */}
+          {aiMenuOpen && (
+            <div
+              className="absolute bottom-full right-0 mb-2 z-50 min-w-[160px] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden"
+              style={{ animation: 'aiMenuIn 0.15s ease-out' }}
+            >
+              <style>{`
+                @keyframes aiMenuIn {
+                  from { opacity: 0; transform: scale(0.92) translateY(6px); }
+                  to   { opacity: 1; transform: scale(1) translateY(0); }
+                }
+              `}</style>
+              <div className="px-3 py-2 border-b border-gray-700">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">AI Assist</p>
+              </div>
+              {([
+                { action: 'improve'   as const, label: '✨ Improve',      desc: 'Rewrite for clarity & flow' },
+                { action: 'summarize' as const, label: '📝 Summarize',    desc: 'Condense key points' },
+                { action: 'grammar'   as const, label: '🔍 Fix Grammar',  desc: 'Correct errors & spelling' },
+              ]).map(({ action, label, desc }) => (
+                <button
+                  key={action}
+                  type="button"
+                  onClick={() => runAiAction(action)}
+                  className="w-full flex flex-col items-start px-3 py-2.5 hover:bg-gray-800 transition-colors group/item text-left"
+                >
+                  <span className="text-sm font-semibold text-white group-hover/item:text-purple-300 transition-colors">{label}</span>
+                  <span className="text-[11px] text-gray-400 mt-0.5">{desc}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <ToolbarButton 
           icon={isSaving ? <span className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" /> : <Save size={18} />} 
           label="Save Draft" 
