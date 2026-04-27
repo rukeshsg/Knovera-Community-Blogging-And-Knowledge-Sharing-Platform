@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import MediaPickerModal from './MediaPickerModal';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -76,53 +77,49 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 
   if (!editor) return null;
 
-  const uploadImage = async () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = async (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      const file = target.files?.[0];
-      if (file) {
-        const formData = new FormData();
-        formData.append('file', file);
-        try {
-          const res = await fetch('/api/upload', { method: 'POST', body: formData });
-          const data = await res.json();
-          if (data.url) {
-            editor.chain().focus().setImage({ src: data.url }).run();
-          }
-        } catch (error) {
-          console.error('Image upload failed', error);
-        }
-      }
-    };
-    input.click();
+  // ── Media Modal State ──────────────────────────────────────────────────
+  type MediaMode = 'image' | 'gif' | 'youtube';
+  const [mediaModal, setMediaModal] = useState<MediaMode | null>(null);
+
+  const openMedia = (mode: MediaMode) => setMediaModal(mode);
+
+  const handleInsertImages = (urls: string[]) => {
+    urls.forEach(url => editor.chain().focus().setImage({ src: url }).run());
   };
 
-  const setLink = () => {
-    const previousUrl = editor.getAttributes('link').href;
-    const url = window.prompt('URL', previousUrl);
-    if (url === null) return;
-    if (url === '') {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-  };
-
-  const setYoutube = () => {
-    const url = window.prompt('Enter YouTube URL:');
-    if (url) {
+  const handleInsertUrl = (url: string, type: 'image' | 'gif' | 'youtube') => {
+    if (type === 'youtube') {
       editor.commands.setYoutubeVideo({ src: url });
-    }
-  };
-
-  const setGif = () => {
-    const url = window.prompt('Enter GIF URL:');
-    if (url) {
+    } else {
       editor.chain().focus().setImage({ src: url }).run();
     }
+  };
+
+  // ── Link Popover State ─────────────────────────────────────────────────
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const linkRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!linkOpen) return;
+    const h = (e: MouseEvent) => { if (linkRef.current && !linkRef.current.contains(e.target as Node)) setLinkOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [linkOpen]);
+
+  const applyLink = () => {
+    if (!linkUrl.trim()) {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    } else {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: linkUrl.trim() }).run();
+    }
+    setLinkOpen(false);
+    setLinkUrl('');
+  };
+
+  const openLinkPopover = () => {
+    setLinkUrl(editor.getAttributes('link').href || '');
+    setLinkOpen(true);
   };
 
   const aiMenuRef = useRef<HTMLDivElement>(null);
@@ -221,6 +218,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
   };
 
   return (
+    <>
     <div className="flex flex-wrap items-center gap-2 p-2 border-b border-[var(--color-bg-secondary)] bg-[var(--background)] sticky top-0 z-10">
       {/* Text Group */}
       <div className="flex items-center gap-1 border-r border-[var(--color-bg-secondary)] pr-2">
@@ -248,10 +246,47 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 
       {/* Media Group */}
       <div className="flex items-center gap-1 border-r border-[var(--color-bg-secondary)] pr-2">
-        <ToolbarButton icon={<LinkIcon size={18} />} label="Insert Link (Ctrl+K)" onClick={setLink} isActive={editor.isActive('link')} />
-        <ToolbarButton icon={<ImageIcon size={18} />} label="Upload Image" onClick={uploadImage} />
-        <ToolbarButton icon={<FileVideo size={18} />} label="Insert GIF" onClick={setGif} />
-        <ToolbarButton icon={<YoutubeIcon size={18} />} label="Embed YouTube" onClick={setYoutube} />
+        {/* Link Popover */}
+        <div className="relative" ref={linkRef}>
+          <div className="relative group flex items-center justify-center">
+            <button
+              type="button"
+              onClick={openLinkPopover}
+              className={`p-2 rounded-lg transition-colors flex items-center justify-center ${
+                editor.isActive('link') ? 'bg-[var(--color-bg-secondary)] text-[var(--color-primary)]' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-soft)] hover:text-[var(--color-text-primary)]'
+              }`}
+              aria-label="Insert Link"
+            >
+              <LinkIcon size={18} />
+            </button>
+            <div className="absolute bottom-full mb-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 delay-150 z-50">
+              <div className="bg-black text-white text-xs font-medium px-2.5 py-1.5 rounded-md whitespace-nowrap shadow-xl">Insert Link (Ctrl+K)</div>
+            </div>
+          </div>
+          {linkOpen && (
+            <div className="absolute bottom-full left-0 mb-2 z-50 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-3 min-w-[260px]" style={{ animation: 'aiMenuIn 0.15s ease-out' }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Insert Link</p>
+              <input
+                type="url"
+                value={linkUrl}
+                onChange={e => setLinkUrl(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') applyLink(); if (e.key === 'Escape') setLinkOpen(false); }}
+                placeholder="https://example.com"
+                autoFocus
+                className="w-full px-3 py-2 text-sm bg-gray-800 border border-gray-600 rounded-lg text-white placeholder:text-gray-500 outline-none focus:border-blue-500 transition-colors mb-2"
+              />
+              <div className="flex gap-2">
+                <button onClick={applyLink} className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors">
+                  {linkUrl.trim() ? 'Apply' : 'Remove Link'}
+                </button>
+                <button onClick={() => setLinkOpen(false)} className="flex-1 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold rounded-lg transition-colors">Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
+        <ToolbarButton icon={<ImageIcon size={18} />} label="Insert Image" onClick={() => openMedia('image')} />
+        <ToolbarButton icon={<FileVideo size={18} />} label="Insert GIF" onClick={() => openMedia('gif')} />
+        <ToolbarButton icon={<YoutubeIcon size={18} />} label="Embed YouTube" onClick={() => openMedia('youtube')} />
       </div>
 
       {/* Pro Features Group */}
@@ -328,8 +363,19 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         </div>
       </div>
     </div>
+    {mediaModal && (
+      <MediaPickerModal
+        mode={mediaModal}
+        onInsertImages={handleInsertImages}
+        onInsertUrl={handleInsertUrl}
+        onClose={() => setMediaModal(null)}
+      />
+    )}
+  </>
   );
 };
+
+// ── Editor Root ────────────────────────────────────────────────────────────────
 
 export default function TipTapEditor({ content, onChange }: { content: string, onChange: (html: string) => void }) {
   const editor = useEditor({
