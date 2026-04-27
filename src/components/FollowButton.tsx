@@ -1,6 +1,9 @@
 "use client";
 import { useState } from "react";
 import { UserPlus, UserMinus, Clock, Loader2 } from "lucide-react";
+import { useToast } from "./Toast";
+import Link from "next/link";
+import { safeJson } from "@/lib/api-utils";
 
 type FollowState = "none" | "following" | "requested";
 
@@ -22,17 +25,18 @@ export default function FollowButton({
   const [state, setState] = useState<FollowState>(initialState);
   const [count, setCount] = useState(initialCount);
   const [loading, setLoading] = useState(false);
+  const { error } = useToast();
 
   if (isOwnProfile) return null;
 
   if (!isLoggedIn) {
     return (
-      <a
+      <Link
         href="/login"
         className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white rounded-xl text-sm font-semibold hover:bg-[#7a350b] transition-colors shadow-md"
       >
         <UserPlus className="w-4 h-4" /> Follow
-      </a>
+      </Link>
     );
   }
 
@@ -40,13 +44,16 @@ export default function FollowButton({
     setLoading(true);
     try {
       const res = await fetch(`/api/users/${userId}/follow`, { method: "POST" });
-      const data = await res.json();
-      if (res.ok) {
+      const data = await safeJson(res);
+      if (res.ok && data) {
         setState(data.state as FollowState);
         setCount(data.followerCount);
+      } else {
+        error(data?.error || "Failed to update follow status");
       }
     } catch (err) {
       console.error("Follow toggle failed", err);
+      error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

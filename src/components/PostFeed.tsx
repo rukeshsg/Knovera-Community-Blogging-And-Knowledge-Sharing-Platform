@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Loader2, Heart, Eye, ArrowRight } from "lucide-react";
+import { safeJson } from "@/lib/api-utils";
 
 interface Post {
   _id: string;
@@ -33,9 +34,9 @@ export default function PostFeed({ initialPosts }: { initialPosts: Post[] }) {
 
     try {
       const res = await fetch(`/api/posts?page=${nextPage}&limit=6`);
-      const data = await res.json();
+      const data = await safeJson(res);
 
-      if (res.ok && data.posts?.length > 0) {
+      if (res.ok && data && data.posts?.length > 0) {
         setPosts((prev) => [...prev, ...data.posts]);
         setPage(nextPage);
         if (data.posts.length < 6) setHasMore(false);

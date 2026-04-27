@@ -3,6 +3,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
+import { safeJson } from "@/lib/api-utils";
 import NotificationBell from "@/components/NotificationBell";
 import { Search, Moon, Sun, LogOut, User, MessageSquare, Bookmark, ChevronDown, Settings, X, Loader2, Calendar } from 'lucide-react';
 
@@ -39,6 +42,7 @@ function SignOutModal({ onConfirm, onCancel }: { onConfirm: () => void; onCancel
 
 export default function Navbar() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -78,10 +82,11 @@ export default function Navbar() {
         const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`, {
           signal: abortController.signal
         });
-        if (!res.ok) throw new Error("Search failed");
-        const data = await res.json();
-        setSearchResults(data.results || []);
-        setSelectedIndex(-1);
+        const data = await safeJson(res);
+        if (data) {
+          setSearchResults(data.results || []);
+          setSelectedIndex(-1);
+        }
       } catch (err: any) {
         if (err.name !== "AbortError") {
           setSearchError("Failed to fetch results.");
@@ -98,7 +103,9 @@ export default function Navbar() {
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
-    const parts = text.split(new RegExp(`(${query})`, "gi"));
+    // Escape regex special characters
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const parts = text.split(new RegExp(`(${escaped})`, "gi"));
     return parts.map((part, i) => 
       part.toLowerCase() === query.toLowerCase() 
         ? <span key={i} className="bg-[var(--color-primary)]/20 text-[var(--color-primary)] font-bold px-0.5 rounded">{part}</span> 
@@ -197,13 +204,15 @@ export default function Navbar() {
                         e.preventDefault();
                         if (selectedIndex >= 0 && searchResults[selectedIndex]) {
                           const item = searchResults[selectedIndex];
+                          setShowSearch(false);
                           if (item.type === 'user') {
-                            window.location.href = `/profile/${item._id}`;
+                            router.push(`/profile/${item._id}`);
                           } else {
-                            window.location.href = `/post/${item.slug}`;
+                            router.push(`/post/${item.slug}`);
                           }
                         } else if (searchQuery.trim()) {
-                          window.location.href = `/explore?q=${encodeURIComponent(searchQuery.trim())}`;
+                          setShowSearch(false);
+                          router.push(`/explore?q=${encodeURIComponent(searchQuery.trim())}`);
                         }
                       } else if (e.key === "Escape") {
                         setShowSearch(false);
@@ -235,7 +244,7 @@ export default function Navbar() {
                           ))}
                         </div>
                       ) : searchError ? (
-                        <div className="py-8 text-center text-red-500">{searchError}</div>
+                        <div className="py-8 text-center text-[var(--color-primary)] font-medium">{searchError}</div>
                       ) : searchResults.length > 0 ? (
                         <div className="flex flex-col">
                           <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">

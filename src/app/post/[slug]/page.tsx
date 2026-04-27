@@ -77,13 +77,13 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
   let hasRequested = false;
   let isOwnProfile = false;
 
+  const authorDoc = await import("@/models/User").then(m => m.default.findById(post.author._id).select("followers followRequestsReceived").lean()) as any;
+  
   if (currentUserId) {
     const userDoc = await import("@/models/User").then(m => m.default.findById(currentUserId).select("bookmarks following followRequestsSent").lean()) as any;
     isBookmarked = userDoc?.bookmarks?.some((id: any) => id.toString() === post._id.toString()) ?? false;
     isOwnProfile = currentUserId === post.author._id.toString();
     
-    // We need the author's followers/requests arrays to compute the follow state accurately
-    const authorDoc = await import("@/models/User").then(m => m.default.findById(post.author._id).select("followers followRequestsReceived").lean()) as any;
     if (authorDoc) {
       isFollowing = authorDoc.followers?.some((fId: any) => fId.toString() === currentUserId);
       hasRequested = authorDoc.followRequestsReceived?.some((fId: any) => fId.toString() === currentUserId);
@@ -156,7 +156,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
               <FollowButton
                 userId={post.author._id.toString()}
                 initialState={followState}
-                initialCount={0} // We don't display follower count in this specific button instance
+                initialCount={authorDoc?.followers?.length || 0}
                 isLoggedIn={!!session}
                 isOwnProfile={isOwnProfile}
               />

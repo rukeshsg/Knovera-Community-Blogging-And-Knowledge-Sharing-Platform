@@ -5,12 +5,15 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import TipTapEditor from "@/components/TipTapEditor";
 import { Image as ImageIcon, Loader2, Save, Send } from "lucide-react";
+import { useToast } from "@/components/Toast";
+import { safeJson } from "@/lib/api-utils";
 
 export default function WriteClient() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const editSlug = searchParams.get("edit");
+  const { success, error, info } = useToast();
   
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -28,9 +31,9 @@ export default function WriteClient() {
     const fetchPost = async () => {
       try {
         const res = await fetch(`/api/posts/${editSlug}`);
-        const data = await res.json();
+        const data = await safeJson(res);
         
-        if (res.ok) {
+        if (res.ok && data) {
           const post = data.post;
           // Security check: only author can edit
           if (post.author._id !== session?.user?.id) {
@@ -62,8 +65,8 @@ export default function WriteClient() {
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
-      if (data.url) setCoverImage(data.url);
+      const data = await safeJson(res);
+      if (data && data.url) setCoverImage(data.url);
     } catch (error) {
       console.error("Cover upload failed", error);
     } finally {
@@ -78,7 +81,7 @@ export default function WriteClient() {
 
   const handlePublish = async (publishStatus: boolean) => {
     if (!title.trim() || !content.trim()) {
-      alert("Title and content are required.");
+      error("Title and content are required.");
       return;
     }
 
@@ -101,9 +104,13 @@ export default function WriteClient() {
         })
       });
 
-      const data = await res.json();
-      if (res.ok) {
+      const data = await safeJson(res);
+      if (res.ok && data) {
         setLastSaved(new Date());
+        if (!publishStatus) {
+          success("Draft saved successfully!");
+        }
+
         if (publishStatus) {
           router.push(`/post/${data.post.slug}`);
         } else if (!editSlug) {
@@ -111,7 +118,7 @@ export default function WriteClient() {
           router.replace(`/write?edit=${data.post.slug}`);
         }
       } else {
-        alert(data.error);
+        error(data?.error || "Failed to save post");
       }
     } catch (error) {
       console.error("Failed to save", error);

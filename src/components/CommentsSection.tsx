@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Heart, Trash2, Reply, Loader2, MessageSquare, ChevronDown } from "lucide-react";
+import { safeJson } from "@/lib/api-utils";
 import Link from "next/link";
 import ErrorBoundary from "./ErrorBoundary";
 
@@ -41,11 +42,18 @@ function CommentItem({
 
     try {
       const res = await fetch(`/api/comments/${comment._id}`, { method: "POST" });
-      const data = await res.json();
-      if (res.ok) { setLiked(data.liked); setLikeCount(data.count); }
-      else { setLiked(prevLiked); setLikeCount(prevCount); }
+      const data = await safeJson(res);
+      if (res.ok && data) {
+        setLiked(data.liked); 
+        setLikeCount(data.count);
+        return;
+      }
+      // Fallback if not ok or not json
+      setLiked(prevLiked); 
+      setLikeCount(prevCount);
     } catch {
-      setLiked(prevLiked); setLikeCount(prevCount);
+      setLiked(prevLiked); 
+      setLikeCount(prevCount);
     }
   };
 
@@ -58,8 +66,8 @@ function CommentItem({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: replyText.trim(), parentCommentId: comment._id }),
       });
-      const data = await res.json();
-      if (res.ok) { 
+      const data = await safeJson(res);
+      if (res.ok && data) {
         setReplies((prev) => [data.comment, ...prev]); 
         setReplyText(""); 
         setShowReply(false); 
@@ -123,11 +131,11 @@ function CommentItem({
           <div className="mt-4 flex gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
              <div className="flex-1 relative">
                 <input
-                  className="w-full text-sm px-4 py-3 rounded-xl border border-[var(--color-bg-secondary)] bg-[var(--background)] outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all"
-                  placeholder={`Reply to ${comment.author.name.split(' ')[0]}...`}
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
+                   className="w-full text-sm px-4 py-3 rounded-xl border border-[var(--color-bg-secondary)] bg-[var(--background)] outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all"
+                   placeholder={`Reply to ${comment.author.name.split(' ')[0]}...`}
+                   value={replyText}
+                   onChange={(e) => setReplyText(e.target.value)}
+                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
                 />
              </div>
             <button 
@@ -173,8 +181,8 @@ export default function CommentsSection({ postId, initialComments }: { postId: s
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: text.trim() }),
       });
-      const data = await res.json();
-      if (res.ok) { 
+      const data = await safeJson(res);
+      if (res.ok && data) {
         setComments((prev) => [data.comment, ...prev]); 
         setText(""); 
         setTotalCount(prev => prev + 1);
@@ -192,8 +200,8 @@ export default function CommentsSection({ postId, initialComments }: { postId: s
     const nextPage = page + 1;
     try {
       const res = await fetch(`/api/posts/${postId}/comments?page=${nextPage}`);
-      const data = await res.json();
-      if (res.ok) {
+      const data = await safeJson(res);
+      if (res.ok && data) {
         setComments((prev) => [...prev, ...data.comments]);
         setPage(nextPage);
         setHasMore(data.hasMore);

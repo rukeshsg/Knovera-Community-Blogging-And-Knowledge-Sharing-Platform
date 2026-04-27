@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Loader2, MessageSquare, Heart, UserPlus, Info } from "lucide-react";
+import { safeJson } from "@/lib/api-utils";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
@@ -40,8 +41,8 @@ export default function NotificationBell() {
     const fetchCount = async () => {
       try {
         const res = await fetch("/api/notifications");
-        if (res.ok) {
-          const data = await res.json();
+        const data = await safeJson(res);
+        if (data) {
           setUnreadCount(data.unreadCount);
           if (open) setNotifications(data.notifications);
         }
@@ -59,9 +60,11 @@ export default function NotificationBell() {
       setLoading(true);
       try {
         const res = await fetch("/api/notifications");
-        const data = await res.json();
-        setNotifications(data.notifications);
-        setUnreadCount(data.unreadCount);
+        const data = await safeJson(res);
+        if (data) {
+          setNotifications(data.notifications);
+          setUnreadCount(data.unreadCount);
+        }
       } finally {
         setLoading(false);
       }

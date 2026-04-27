@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { safeJson } from "@/lib/api-utils";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -32,10 +33,10 @@ export default function SignupPage() {
         body: JSON.stringify({ name, email, password }),
       });
       
-      const data = await res.json();
+      const data = await safeJson(res);
       
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to register");
+      if (!res.ok || !data) {
+        throw new Error(data?.error || "Failed to register");
       }
       
       const loginRes = await signIn("credentials", { redirect: false, email, password });

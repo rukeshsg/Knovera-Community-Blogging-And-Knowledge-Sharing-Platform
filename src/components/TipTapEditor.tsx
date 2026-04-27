@@ -14,6 +14,8 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
+import { useToast } from './Toast';
+import { safeJson } from '@/lib/api-utils';
 import { 
   Bold, Italic, Strikethrough, Code, Heading1, Heading2, Quote, 
   List, ListOrdered, ImageIcon, Link as LinkIcon, Highlighter, Minus, 
@@ -67,6 +69,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
   const linkRef = useRef<HTMLDivElement>(null);
   const aiMenuRef = useRef<HTMLDivElement>(null);
   const [aiMenuOpen, setAiMenuOpen] = useState(false);
+  const { success, error, info } = useToast();
 
   useEffect(() => {
     if (!editor) return;
@@ -95,18 +98,16 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     return () => document.removeEventListener('mousedown', handler);
   }, [aiMenuOpen]);
 
-  const showToast = useCallback((message: string, type: 'info' | 'success' | 'error' = 'info') => {
-    const existing = document.getElementById('ai-toast');
-    if (existing) existing.remove();
-    const toast = document.createElement('div');
-    toast.id = 'ai-toast';
-    const colors = { info: 'bg-[#7c3aed] text-white', success: 'bg-green-600 text-white', error: 'bg-red-600 text-white' };
-    toast.className = `fixed bottom-5 right-5 z-[9999] flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-sm font-semibold transition-all duration-300 ${colors[type]}`;
-    toast.innerHTML = message;
-    document.body.appendChild(toast);
-    requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
-    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3500);
-  }, []);
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        openLinkPopover();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [editor]);
 
   // ── Early return AFTER all hooks ────────────────────────────────────────
   if (!editor) return null;
@@ -152,7 +153,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     const textToProcess = selectedText || editor.getText();
 
     if (!textToProcess.trim()) {
-      showToast('⚠️ Please enter or select some text first.', 'error');
+      error('⚠️ Please enter or select some text first.');
       return;
     }
 
@@ -163,7 +164,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
     };
 
     setIsAiProcessing(true);
-    showToast(labels[action], 'info');
+    info(labels[action]);
 
     try {
       const res = await fetch('/api/ai', {
@@ -171,7 +172,13 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: textToProcess, action }),
       });
-      const data = await res.json();
+      
+      const data = await safeJson(res);
+      if (!res.ok || !data) {
+        error('❌ AI service unavailable or returned invalid response.');
+        setIsAiProcessing(false);
+        return;
+      }
       if (data.result) {
         if (selectedText) {
           editor.chain().focus().insertContentAt({ from: selection.from, to: selection.to }, data.result).run();
@@ -183,13 +190,13 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
           summarize: '✅ Summary ready!',
           grammar: '✅ Grammar fixed!',
         };
-        showToast(successLabels[action], 'success');
+        success(successLabels[action]);
       } else {
-        showToast('❌ AI processing failed. Try again.', 'error');
+        error('❌ AI processing failed. Try again.');
       }
     } catch (err) {
       console.error(err);
-      showToast('❌ Error connecting to AI. Try again.', 'error');
+      error('❌ Error connecting to AI. Try again.');
     } finally {
       setIsAiProcessing(false);
     }
@@ -289,14 +296,14 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
             onClick={() => setAiMenuOpen(prev => !prev)}
             disabled={isAiProcessing}
             aria-label="AI Assist"
-            className={`relative p-2 rounded-lg transition-colors flex items-center justify-center ${
+            className={`relative p-2 rounded-lg transition-all flex items-center justify-center ${
               aiMenuOpen
-                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
-                : 'text-[#a855f7] hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20'
+                : 'text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10'
             } ${isAiProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {isAiProcessing
-              ? <span className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+              ? <span className="w-4 h-4 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
               : <Sparkles size={18} />}
           </button>
 
@@ -312,17 +319,17 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
           {/* Floating Action Menu */}
           {aiMenuOpen && (
             <div
-              className="absolute bottom-full right-0 mb-2 z-50 min-w-[160px] bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden"
-              style={{ animation: 'aiMenuIn 0.15s ease-out' }}
+              className="absolute bottom-full right-0 mb-2 z-50 min-w-[180px] bg-[#1a1a1a] border border-[#333] rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden"
+              style={{ animation: 'aiMenuIn 0.2s cubic-bezier(0, 0, 0.2, 1)' }}
             >
               <style>{`
                 @keyframes aiMenuIn {
-                  from { opacity: 0; transform: scale(0.92) translateY(6px); }
+                  from { opacity: 0; transform: scale(0.95) translateY(10px); }
                   to   { opacity: 1; transform: scale(1) translateY(0); }
                 }
               `}</style>
-              <div className="px-3 py-2 border-b border-gray-700">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">AI Assist</p>
+              <div className="px-4 py-2.5 border-b border-[#333] bg-white/[0.02]">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">AI Assist</p>
               </div>
               {([
                 { action: 'improve'   as const, label: '✨ Improve',      desc: 'Rewrite for clarity & flow' },
@@ -333,10 +340,11 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
                   key={action}
                   type="button"
                   onClick={() => runAiAction(action)}
-                  className="w-full flex flex-col items-start px-3 py-2.5 hover:bg-gray-800 transition-colors group/item text-left"
+                  className="w-full flex flex-col items-start px-4 py-3 hover:bg-[var(--color-primary)]/10 transition-all group/item text-left relative overflow-hidden"
                 >
-                  <span className="text-sm font-semibold text-white group-hover/item:text-purple-300 transition-colors">{label}</span>
-                  <span className="text-[11px] text-gray-400 mt-0.5">{desc}</span>
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--color-primary)] transform -translate-x-full group-hover/item:translate-x-0 transition-transform duration-200" />
+                  <span className="text-sm font-bold text-white group-hover/item:text-[var(--color-primary)] transition-colors">{label}</span>
+                  <span className="text-[11px] text-gray-500 mt-0.5 font-medium">{desc}</span>
                 </button>
               ))}
             </div>

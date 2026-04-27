@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Send, Loader2, ArrowLeft, MessageSquare, Check, X } from "lucide-react";
+import { useToast } from "@/components/Toast";
+import { safeJson } from "@/lib/api-utils";
 
 interface Message {
   _id: string;
@@ -33,6 +35,7 @@ export default function MessagesClient() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { success, error } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"inbox" | "requests">("inbox");
@@ -56,9 +59,8 @@ export default function MessagesClient() {
       if (showLoading) setLoadingConvos(true);
       try {
         const r = await fetch("/api/messages");
-        if (!r.ok) return;
-        const d = await r.json();
-        if (isMounted) {
+        const d = await safeJson(r);
+        if (d && isMounted) {
           setConversations(d.conversations ?? []);
         }
       } catch (err) {
@@ -93,19 +95,13 @@ export default function MessagesClient() {
           body: JSON.stringify({ recipientId: withUserId, content: "" }), // Initialize only, no content
         });
         
-        if (!res.ok) {
-          const errText = await res.text();
-          console.error("Failed to initialize chat", res.status, errText);
-          return;
-        }
-
-        const d = await res.json();
-        if (d.conversationId) {
+        const d = await safeJson(res);
+        if (d && d.conversationId) {
           setActiveId(d.conversationId);
           // Refetch conversations list
           const convRes = await fetch("/api/messages");
-          if (convRes.ok) {
-            const d2 = await convRes.json();
+          const d2 = await safeJson(convRes);
+          if (d2) {
             setConversations(d2.conversations ?? []);
           }
           window.history.replaceState(null, "", "/messages");
@@ -127,9 +123,8 @@ export default function MessagesClient() {
       if (showLoading) setLoadingMessages(true);
       try {
         const res = await fetch(`/api/messages/${activeId}`);
-        if (!res.ok) return;
-        const d = await res.json();
-        if (isMounted) {
+        const d = await safeJson(res);
+        if (d && isMounted) {
           setMessages(d.messages ?? []);
         }
       } catch (err) {
@@ -192,8 +187,8 @@ export default function MessagesClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ recipientId: activeConvo.other._id, content }),
       });
-      const data = await res.json();
-      if (res.ok) {
+      const data = await safeJson(res);
+      if (res.ok && data) {
         setMessages((prev) => prev.map((m) => (m._id === tempId ? { ...data.message, sender: { ...data.message.sender, _id: data.message.sender._id?.toString() } } : m)));
         setConversations((prev) =>
           prev.map((c) =>
@@ -203,10 +198,12 @@ export default function MessagesClient() {
       } else {
         setMessages((prev) => prev.filter((m) => m._id !== tempId));
         setText(content);
+        error(data?.error || "Failed to send message");
       }
     } catch {
       setMessages((prev) => prev.filter((m) => m._id !== tempId));
       setText(content);
+      error("Connection error. Message not sent.");
     } finally {
       setSending(false);
     }
@@ -218,9 +215,9 @@ export default function MessagesClient() {
 
     try {
       const res = await fetch(`/api/messages/${activeId}/${action}`, { method: "POST" });
-      const data = await res.json();
+      const data = await safeJson(res);
       
-      if (res.ok) {
+      if (res.ok && data) {
         setConversations((prev) => 
           prev.map((c) => (c._id === activeId ? { ...c, status: data.status } : c))
         );
@@ -229,9 +226,13 @@ export default function MessagesClient() {
         } else {
           setActiveTab("inbox"); // Move them back to inbox automatically
         }
+        success(action === "accept" ? "Request accepted!" : "Conversation deleted.");
+      } else {
+        error(data?.error || "Action failed");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
+      error("An unexpected error occurred.");
     } finally {
       setActionLoading(null);
     }
@@ -312,7 +313,7 @@ export default function MessagesClient() {
                     </p>
                   </div>
                   {c.status === "PENDING" && c.requestedBy === currentUserId && (
-                     <span className="text-[10px] uppercase font-bold text-[var(--color-text-secondary)] bg-[var(--color-bg-secondary)] px-2 py-1 rounded-md">Sent</span>
+                     <span className="text-[10px] uppercase font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-1 rounded-md border border-[var(--color-primary)]/20">Sent</span>
                   )}
                 </button>
               ))}

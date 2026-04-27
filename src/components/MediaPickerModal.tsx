@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback, DragEvent } from "react";
 import NextImage from "next/image";
 import { X, Upload, Link as LinkIcon, Image as ImageIcon, Film, PlaySquare as YoutubeIcon, Loader2, CheckCircle, Trash2 } from "lucide-react";
+import { safeJson } from "@/lib/api-utils";
 
 type MediaMode = "image" | "gif" | "youtube";
 type Tab = "upload" | "url";
@@ -43,8 +44,8 @@ export default function MediaPickerModal({ mode, onInsertImages, onInsertUrl, on
     fd.append("file", file);
     try {
       const r = await fetch("/api/upload", { method: "POST", body: fd });
-      const d = await r.json();
-      return d.url || null;
+      const d = await safeJson(r);
+      return d?.url || null;
     } catch { return null; }
   }, []);
 

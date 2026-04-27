@@ -22,9 +22,10 @@ async function searchPosts(query: string, tag: string, page: number = 1) {
   const filter: any = { isPublished: true };
   if (tag) filter.tags = { $in: [tag] };
   if (query) {
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     filter.$or = [
-      { title: { $regex: query, $options: "i" } },
-      { content: { $regex: query, $options: "i" } },
+      { title: { $regex: escapedQuery, $options: "i" } },
+      { content: { $regex: escapedQuery, $options: "i" } },
     ];
   }
 

@@ -6,10 +6,13 @@ import { useRouter } from "next/navigation";
 import { Loader2, Camera, Globe, AtSign, Save, ArrowLeft, Code } from "lucide-react";
 import Link from "next/link";
 import ImageCropper from "@/components/ImageCropper";
+import { useToast } from "@/components/Toast";
+import { safeJson } from "@/lib/api-utils";
 
 export default function SettingsPage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
+  const { success, error } = useToast();
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -35,8 +38,8 @@ export default function SettingsPage() {
       const fetchProfile = async () => {
         try {
           const res = await fetch(`/api/users/${session.user.id}`);
-          const data = await res.json();
-          if (res.ok) {
+          const data = await safeJson(res);
+          if (res.ok && data) {
             setFormData({
               name: data.user.name || "",
               image: data.user.image || "",
@@ -72,8 +75,8 @@ export default function SettingsPage() {
     fd.append("file", blob, "avatar.jpg");
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (data.url) setFormData(prev => ({ ...prev, image: data.url }));
+      const data = await safeJson(res);
+      if (data && data.url) setFormData(prev => ({ ...prev, image: data.url }));
     } catch (error) {
       console.error("Upload failed", error);
     } finally {
@@ -92,17 +95,18 @@ export default function SettingsPage() {
         body: JSON.stringify(formData)
       });
 
-      if (res.ok) {
+      const data = await safeJson(res);
+      if (res.ok && data) {
         // Update session client-side
         await update({ name: formData.name, image: formData.image });
+        success("Profile updated successfully!");
         router.refresh();
-        alert("Profile updated successfully!");
       } else {
-        const data = await res.json();
-        alert(data.error || "Failed to update profile");
+        error(data?.error || "Failed to update profile");
       }
-    } catch (error) {
-      console.error("Save failed", error);
+    } catch (err) {
+      console.error("Save failed", err);
+      error("An unexpected error occurred. Please try again.");
     } finally {
       setSaving(false);
     }

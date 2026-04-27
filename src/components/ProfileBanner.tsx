@@ -3,8 +3,10 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import { Camera, Loader2, ImagePlus } from "lucide-react";
+import { safeJson } from "@/lib/api-utils";
 import BannerCropper from "./BannerCropper";
 import { useRouter } from "next/navigation";
+import { useToast } from "./Toast";
 
 interface ProfileBannerProps {
   initialCoverImage?: string;
@@ -19,18 +21,19 @@ export default function ProfileBanner({ initialCoverImage, isOwnProfile, userId 
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { success, error } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file");
+      error("Please select a valid image file");
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("Image must be less than 10MB");
+      error("Image must be less than 10MB");
       return;
     }
 
@@ -51,8 +54,8 @@ export default function ProfileBanner({ initialCoverImage, isOwnProfile, userId 
       body: formData,
     });
 
-    if (!res.ok) throw new Error("Failed to upload image");
-    const data = await res.json();
+    const data = await safeJson(res);
+    if (!res.ok) throw new Error(data?.error || "Failed to upload image");
     return data.url;
   };
 
@@ -79,10 +82,11 @@ export default function ProfileBanner({ initialCoverImage, isOwnProfile, userId 
       
       // Update with final URL (in case localUrl expires)
       setCoverImage(cloudUrl);
+      success("Cover photo updated successfully!");
       router.refresh();
-    } catch (error) {
-      console.error(error);
-      alert("Failed to update cover photo");
+    } catch (err) {
+      console.error(err);
+      error("Failed to update cover photo");
       setCoverImage(initialCoverImage); // Revert on failure
     } finally {
       setIsUploading(false);

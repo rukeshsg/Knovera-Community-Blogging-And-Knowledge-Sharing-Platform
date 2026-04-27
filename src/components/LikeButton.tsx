@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import Link from "next/link";
+import { safeJson } from "@/lib/api-utils";
 
 interface Props {
   postId: string;
@@ -24,8 +25,8 @@ export default function LikeButton({ postId, initialLiked, initialCount, isLogge
 
     try {
       const res = await fetch(`/api/posts/${postId}/like`, { method: "POST" });
-      const data = await res.json();
-      if (res.ok) {
+      const data = await safeJson(res);
+      if (res.ok && data) {
         setLiked(data.liked);
         setCount(data.count);
       } else {

@@ -23,10 +23,9 @@ export async function GET(req: Request) {
 
     await connectToDatabase();
     
-    // Explicitly import User model so Mongoose can resolve the 'author' ref
-    User.findOne({});
-
-    const regex = new RegExp(query, "i");
+    // Escape special characters to prevent regex crashes
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escapedQuery, "i");
 
     // Search for Users
     const users = await User.find({
@@ -57,7 +56,7 @@ export async function GET(req: Request) {
     const scoredUsers = users.map(u => {
       let score = 5; // Base score for users
       if (u.name && u.name.toLowerCase().includes(query.toLowerCase())) score += 15;
-      if (u.name && new RegExp(`\\b${query}\\b`, 'i').test(u.name)) score += 25;
+      if (u.name && new RegExp(`\\b${escapedQuery}\\b`, 'i').test(u.name)) score += 25;
       return { ...u, type: 'user', _score: score };
     });
 
@@ -68,7 +67,7 @@ export async function GET(req: Request) {
         if (post.title.toLowerCase().includes(query.toLowerCase())) {
           score += 10;
         }
-        if (new RegExp(`\\b${query}\\b`, 'i').test(post.title)) {
+        if (new RegExp(`\\b${escapedQuery}\\b`, 'i').test(post.title)) {
           score += 20;
         }
       }

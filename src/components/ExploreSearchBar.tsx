@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, Calendar, MessageSquare } from "lucide-react";
+import { safeJson } from "@/lib/api-utils";
 
 export default function ExploreSearchBar({ initialQuery, initialTag }: { initialQuery: string; initialTag: string }) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
@@ -35,11 +36,12 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
         const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`, {
           signal: abortController.signal
         });
-        if (!res.ok) throw new Error("Search failed");
-        const data = await res.json();
-        // Show both users and posts in the dropdown
-        setSearchResults(data.results || []);
-        setSelectedIndex(-1);
+        const data = await safeJson(res);
+        if (data) {
+          // Show both users and posts in the dropdown
+          setSearchResults(data.results || []);
+          setSelectedIndex(-1);
+        }
       } catch (err: any) {
         if (err.name !== "AbortError") {
           setSearchError("Failed to fetch results.");
@@ -57,7 +59,9 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
   const highlightMatch = (text: string, query: string) => {
     if (!text) return text;
     if (!query) return text;
-    const parts = text.split(new RegExp(`(${query})`, "gi"));
+    // Escape regex special characters
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const parts = text.split(new RegExp(`(${escaped})`, "gi"));
     return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase()
         ? <span key={i} className="bg-[var(--color-primary)]/20 text-[var(--color-primary)] font-bold px-0.5 rounded">{part}</span>
@@ -118,7 +122,7 @@ export default function ExploreSearchBar({ initialQuery, initialTag }: { initial
                 ))}
               </div>
             ) : searchError ? (
-              <div className="p-4 text-center text-red-500">{searchError}</div>
+              <div className="p-4 text-center text-[var(--color-primary)] font-medium">{searchError}</div>
             ) : searchResults.length > 0 ? (
               <div className="flex flex-col">
                 <div className="space-y-1" role="listbox">

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Bookmark, BookmarkCheck, Share2, Copy, Check, ExternalLink } from "lucide-react";
+import { safeJson } from "@/lib/api-utils";
 
 // ─── Bookmark Button ─────────────────────────────────────────────────────────
 interface BookmarkProps {
@@ -20,8 +21,8 @@ export function BookmarkButton({ postId, initialBookmarked, isLoggedIn }: Bookma
 
     try {
       const res = await fetch(`/api/posts/${postId}/bookmark`, { method: "POST" });
-      const data = await res.json();
-      if (res.ok) {
+      const data = await safeJson(res);
+      if (res.ok && data) {
         setBookmarked(data.bookmarked);
       } else {
         setBookmarked((b) => !b); // Revert
@@ -101,31 +102,46 @@ export function ShareButton({ title, slug, postId }: ShareProps) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-12 z-50 w-52 bg-[var(--background)] border border-[var(--color-bg-secondary)] rounded-xl shadow-xl p-2 flex flex-col gap-1">
+          <div 
+            className="absolute right-0 top-full mt-2 z-50 w-56 bg-[var(--background)] border border-[var(--color-bg-secondary)] rounded-2xl shadow-2xl p-2 flex flex-col gap-1 origin-top-right transition-all"
+            style={{ animation: 'aiMenuIn 0.15s ease-out' }}
+          >
+            <div className="px-3 py-2 mb-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-secondary)] opacity-60">Share this story</p>
+            </div>
             <button
               onClick={handleCopy}
-              className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-bg-soft)] rounded-lg transition-colors"
+              className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] hover:bg-[var(--color-bg-soft)] hover:text-[var(--color-primary)] rounded-xl transition-all"
             >
-              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-              {copied ? "Copied!" : "Copy Link"}
+              <div className={`p-1.5 rounded-lg ${copied ? "bg-green-500/10 text-green-500" : "bg-[var(--color-bg-secondary)]"}`}>
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              </div>
+              {copied ? "Copied Link!" : "Copy URL"}
             </button>
+            <div className="h-px bg-[var(--color-bg-secondary)] my-1 mx-2" />
             <a
               href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => { setOpen(false); trackShare(); }}
-              className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-bg-soft)] rounded-lg transition-colors"
+              className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] hover:bg-[var(--color-bg-soft)] hover:text-[#1DA1F2] rounded-xl transition-all"
             >
-              <ExternalLink className="w-4 h-4" /> Share on X
+              <div className="p-1.5 rounded-lg bg-[#1DA1F2]/10 text-[#1DA1F2]">
+                <ExternalLink className="w-4 h-4" />
+              </div>
+              Share on X
             </a>
             <a
               href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => { setOpen(false); trackShare(); }}
-              className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-bg-soft)] rounded-lg transition-colors"
+              className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] hover:bg-[var(--color-bg-soft)] hover:text-[#0A66C2] rounded-xl transition-all"
             >
-              <ExternalLink className="w-4 h-4" /> Share on LinkedIn
+              <div className="p-1.5 rounded-lg bg-[#0A66C2]/10 text-[#0A66C2]">
+                <ExternalLink className="w-4 h-4" />
+              </div>
+              Share on LinkedIn
             </a>
           </div>
         </>
