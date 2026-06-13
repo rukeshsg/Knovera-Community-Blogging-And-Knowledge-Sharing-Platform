@@ -252,11 +252,7 @@ public/
 
 ## 📄 License
 
-This project is proprietary and protected.
-
-You may view and learn from the code, but you are not allowed to copy, modify, or use it commercially.
-The UI/UX, branding, and design system are strictly protected.
-
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 ---
 
 <div align="center">
