@@ -262,7 +262,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
     <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
   </a>
   &nbsp;&nbsp;
-  <a href="https://www.linkedin.com/in/rukesh-s-g-6531bb3b7/">
+  <a href="https://www.linkedin.com/in/rukeshsg/">
     <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
   </a>
 </div>
